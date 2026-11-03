@@ -86,6 +86,11 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--sunk);padding:4px;border-radius:12px;max-width:460px}
 .seg button{border:0;background:transparent;padding:10px;border-radius:9px;font-weight:700;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent-ink);box-shadow:0 1px 4px rgb(0 0 0/.12)}
+.inst{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--top-line);background:rgb(255 255 255/.12);color:#fff;border-radius:10px;padding:7px 12px;font-weight:700;white-space:nowrap}
+.inst svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#gate .inst{background:var(--accent);border:0;margin-top:12px;width:100%;justify-content:center;padding:10px}
+#instHelp{position:fixed;inset:0;background:rgb(0 0 0/.5);z-index:40;display:grid;place-items:center;padding:20px}
+#instHelp .card{max-width:380px;margin:0}
 .pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:13px;background:var(--sunk)}
 .pill.sup{background:var(--warn-soft);color:var(--warn)}.pill.cus{background:var(--accent-soft);color:var(--accent-ink)}
 /* login */
@@ -129,6 +134,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <div id="loginMsg" class="msg" hidden></div>
       <div class="acts"><button class="btn primary" type="submit">دخول</button><button class="btn" type="button" id="signupBtn">حساب جديد</button></div>
     </form>
+    <button class="inst" data-install hidden><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>تنزيل البرنامج كتطبيق على الموبايل</span></button>
   </div>
 </div>
 
@@ -159,6 +165,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     <header>
       <button class="menu" id="menuBtn" aria-label="القائمة"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="ttl"><b id="pgTitle">الرئيسية</b><small>عز الدين للمقاولات العامة والتوريدات</small></div>
+      <button class="inst" data-install hidden><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>تنزيل كتطبيق</span></button>
     </header>
 
     <!-- الرئيسية -->
@@ -296,6 +303,11 @@ tbody tr:nth-child(even) td{background:#faf8f2}
   </div>
 </div>
 
+<div id="instHelp" hidden><div class="card">
+  <h3>تنزيل البرنامج كتطبيق</h3>
+  <p id="instText"></p>
+  <button class="btn primary" onclick="$('instHelp').hidden=true">تمام</button>
+</div></div>
 <script>
 const SUPABASE_URL="https://lhamdnaxioxqptkylvkg.supabase.co";
 const SUPABASE_KEY="sb_publishable_X6F5g148JSlVUz5sy0XEcw_KGNK218S";
@@ -626,6 +638,21 @@ async function start(){
   await loadAll();go("home");
 }
 start();
+/* ---------- install as app ---------- */
+let deferredInstall=null;
+const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const showInst=v=>document.querySelectorAll("[data-install]").forEach(b=>b.hidden=!v);
+showInst(!standalone());
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;showInst(true);});
+addEventListener("appinstalled",()=>{deferredInstall=null;showInst(false);});
+document.querySelectorAll("[data-install]").forEach(b=>b.onclick=async()=>{
+  if(deferredInstall){deferredInstall.prompt();const r=await deferredInstall.userChoice;deferredInstall=null;if(r.outcome==="accepted")showInst(false);return;}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  $("instText").textContent=ios
+    ?"افتح البرنامج من Safari، ودوس على زرار المشاركة (المربع اللي فيه سهم لفوق) تحت، وبعدين اختار «إضافة إلى الشاشة الرئيسية»."
+    :"افتح البرنامج من Chrome، ودوس على التلات نقط فوق، وبعدين اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».";
+  $("instHelp").hidden=false;
+});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body></html>
