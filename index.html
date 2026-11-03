@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>كشوف الحساب الأسبوعية</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--bg:#f4f6f9;--card:#fff;--ink:#1d2733;--muted:#66717f;--line:#d6dce4;--pri:#1f4e78;--pri2:#e8f1fa;--inp:#fff9db;--red:#c00000;--green:#1a7f37}
 @media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b2129;--ink:#e6ebf1;--muted:#9aa6b3;--line:#2e3742;--pri:#5b9bd5;--pri2:#1f2a36;--inp:#2a2a1e;--red:#ff6b6b;--green:#4cc36b}}
@@ -40,6 +41,13 @@ tfoot td{background:var(--pri2);font-weight:bold}
 #login{max-width:380px;margin:60px auto}
 .hide{display:none!important}
 .print-head{display:none}
+.co-head{text-align:center;border-bottom:3px double var(--pri);padding-bottom:8px;margin-bottom:10px}
+.co-head .co{font-size:24px;font-weight:bold;color:var(--pri)}
+.co-head .sub{font-size:16px;margin-top:2px}
+.sheet.capture{width:1150px;background:#fff;color:#1d2733;padding:24px;--ink:#1d2733;--muted:#66717f;--line:#c9d1db;--pri:#1f4e78;--pri2:#e8f1fa;--red:#c00000}
+.sheet.capture .tw{overflow:visible}
+.sheet.capture .sig{display:flex}
+.sheet.capture th{background:#1f4e78;color:#fff}
 @media print{
   header,nav,.noprint,.btn{display:none!important}
   body{background:#fff;color:#000;font-size:12px}
@@ -117,7 +125,9 @@ tfoot td{background:var(--pri2);font-weight:bold}
       <button class="btn sec" onclick="shiftWeek(-7)">الأسبوع اللي فات</button>
       <button class="btn sec" onclick="shiftWeek(7)">الأسبوع الجاي</button>
       <button class="btn sec" onclick="window.print()">طباعة</button>
+      <button class="btn" style="background:#1a7f37" onclick="shareImage()">مشاركة كصورة (واتساب)</button>
     </div>
+    <div id="shareMsg" class="msg"></div>
   </div>
   <div class="card" id="stOut"></div>
 </section>
@@ -127,7 +137,7 @@ tfoot td{background:var(--pri2);font-weight:bold}
   <div class="card noprint">
     <div class="row" style="margin-top:0">
       <label>من تاريخ (أول الأسبوع)<input id="m_start" type="date"></label>
-      <label>النوع<select id="m_type"><option value="">الكل</option><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
+      <label>عرض<select id="m_type"><option value="">الكل</option><option value="مورد">الموردين بس</option><option value="عميل">العملاء بس</option><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
       <button class="btn" onclick="loadSummary()">عرض</button>
       <button class="btn sec" onclick="window.print()">طباعة</button>
     </div>
@@ -141,7 +151,7 @@ tfoot td{background:var(--pri2);font-weight:bold}
     <h3 style="margin-top:0">حساب جديد</h3>
     <div class="grid">
       <label>اسم الحساب<input id="a_name"></label>
-      <label>النوع<select id="a_type"><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
+      <label>النوع<select id="a_type"><optgroup label="الموردين"><option>سواق</option><option>محجر</option></optgroup><optgroup label="العملاء"><option>عميل محجر</option><option>عميل شركة</option></optgroup></select></label>
       <label>التليفون<input id="a_phone" inputmode="tel"></label>
       <label>رصيد افتتاحي<input id="a_open" type="number" step="any" value="0"></label>
       <label>ملاحظات<input id="a_notes"></label>
@@ -149,7 +159,8 @@ tfoot td{background:var(--pri2);font-weight:bold}
     <div class="row"><button class="btn" onclick="saveAccount()">إضافة</button></div>
     <div id="accMsg" class="msg"></div>
   </div>
-  <div class="card"><div class="tw"><table id="accTable"></table></div></div>
+  <div class="card"><h3 style="margin-top:0">الموردين</h3><div class="tw"><table id="supTable"></table></div></div>
+  <div class="card"><h3 style="margin-top:0">العملاء</h3><div class="tw"><table id="cusTable"></table></div></div>
   <div class="card">
     <h3 style="margin-top:0">المستخدمين المسموح لهم يدخلوا البرنامج</h3>
     <div class="tw"><table id="memTable"></table></div>
@@ -177,6 +188,9 @@ const addDays = (s,n) => { const d=new Date(s+"T00:00:00"); d.setDate(d.getDate(
 function lastSaturday(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+1)%7)); return iso(d); }
 function msg(id,t,ok){ const m=$(id); m.textContent=t; m.className="msg "+(ok?"ok":"err"); if(ok) setTimeout(()=>m.className="msg",2500); }
 let accounts=[];
+const CAT={"سواق":"مورد","محجر":"مورد","عميل محجر":"عميل","عميل شركة":"عميل"};
+const GROUPS=[["الموردين",[["سواق","سواقين"],["محجر","محاجر"]]],["العملاء",[["عميل محجر","عملاء محاجر"],["عميل شركة","عملاء شركات"]]]];
+const lbl=a=>(a.code?a.code+" - ":"")+a.name;
 
 document.querySelectorAll("nav button[data-t]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav button[data-t]").forEach(x=>x.classList.toggle("on",x===b));
@@ -214,20 +228,25 @@ async function loadAccounts(){
   const {data,error}=await sb.from("ezz_accounts").select("*").order("type").order("name");
   if(error){ alert(error.message); return; }
   accounts=data;
-  const opts='<option value="">-- اختار --</option>'+["سواق","محجر","عميل محجر","عميل شركة"].map(t=>{
-    const g=data.filter(a=>a.type===t); return g.length?`<optgroup label="${t}">`+g.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("")+"</optgroup>":"";
-  }).join("");
+  data.sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
+  const opts='<option value="">-- اختار --</option>'+GROUPS.flatMap(([cat,ts])=>ts.map(([t,pl])=>{
+    const g=data.filter(a=>a.type===t); return g.length?`<optgroup label="${cat} - ${pl}">`+g.map(a=>`<option value="${a.id}">${esc(lbl(a))}</option>`).join("")+"</optgroup>":"";
+  })).join("");
   document.querySelectorAll(".accSel").forEach(s=>{const v=s.value; s.innerHTML=opts; s.value=v;});
-  $("accTable").innerHTML="<tr><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>ملاحظات</th><th></th></tr>"+
-    data.map(a=>`<tr><td>${esc(a.name)}</td><td>${a.type}</td><td>${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td>${esc(a.notes)}</td>
-    <td><button class="btn sec" onclick="editOpening(${a.id})">تعديل الرصيد الافتتاحي</button></td></tr>`).join("");
+  const head="<tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>ملاحظات</th><th></th></tr>";
+  const row=a=>`<tr><td><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${a.type}</td><td>${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td>${esc(a.notes)}</td>
+    <td><button class="btn sec" onclick="editOpening(${a.id})">تعديل الرصيد الافتتاحي</button></td></tr>`;
+  const empty='<tr><td colspan="7">لسه مفيش حسابات</td></tr>';
+  const sup=data.filter(a=>CAT[a.type]==="مورد"), cus=data.filter(a=>CAT[a.type]==="عميل");
+  $("supTable").innerHTML=head+(sup.map(row).join("")||empty);
+  $("cusTable").innerHTML=head+(cus.map(row).join("")||empty);
 }
 async function saveAccount(){
   const name=$("a_name").value.trim(); if(!name) return msg("accMsg","اكتب اسم الحساب",false);
-  const {error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null});
+  const {data:ins,error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).select();
   if(error) return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
   ["a_name","a_phone","a_notes"].forEach(i=>$(i).value=""); $("a_open").value=0;
-  msg("accMsg","تم إضافة الحساب",true); loadAccounts();
+  msg("accMsg","تم إضافة الحساب"+(ins&&ins[0]&&ins[0].code?" بكود "+ins[0].code:""),true); loadAccounts();
 }
 async function editOpening(id){
   const a=accounts.find(x=>x.id===id); const v=prompt("الرصيد الافتتاحي لـ "+a.name, a.opening_balance); if(v===null) return;
@@ -261,13 +280,13 @@ async function saveEntry(){
   msg("entryMsg","تم الحفظ",true); loadRecent();
 }
 async function loadRecent(){
-  const {data,error}=await sb.from("ezz_entries").select("*,ezz_accounts(name)").order("created_at",{ascending:false}).limit(30);
+  const {data,error}=await sb.from("ezz_entries").select("*,ezz_accounts(name,code)").order("created_at",{ascending:false}).limit(30);
   if(error) return;
   const cs=new Set(),co=new Set();
   data.forEach(r=>{ if(r.contractor) cs.add(r.contractor); if(r.company) co.add(r.company); });
   $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join(""); $("companies").innerHTML=[...co].map(x=>`<option value="${esc(x)}">`).join("");
   $("recent").innerHTML="<tr><th>التاريخ</th><th>الحساب</th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th><th></th></tr>"+
-    data.map(r=>`<tr><td>${r.entry_date}</td><td>${esc(r.ezz_accounts?.name)}</td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
+    data.map(r=>`<tr><td>${r.entry_date}</td><td>${esc(r.ezz_accounts?lbl(r.ezz_accounts):"")}</td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
     <td>${r.trips!=null?fmt(r.quantity):""}</td><td>${r.price??""}</td><td>${r.trips!=null?fmt(r.value):""}</td><td>${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td>
     <td><button class="btn del" onclick="delEntry(${r.id})">مسح</button></td></tr>`).join("");
 }
@@ -289,28 +308,46 @@ async function loadStatement(){
     if(tr){T.trips+=+r.trips;T.qty+=+r.quantity;T.val+=+r.value;} T.pay+=+r.payments; T.net+=+r.net;
     return `<tr><td>${i+1}</td><td>${r.entry_date}</td><td>${esc(r.vehicle)}</td><td>${esc(r.trailer)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
     <td>${tr?fmt(r.quantity):""}</td><td>${r.price??""}</td><td>${tr?fmt(r.value):""}</td><td>${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(bal)}>${fmt(bal)}</td><td>${esc(r.contractor)}</td><td>${esc(r.company)}</td></tr>`;}).join("");
-  $("stOut").innerHTML=`<div class="print-head">عز الدين للمقاولات العامة والتوريدات - كشف حساب أسبوعي</div>
-   <div class="kv"><div>اسم الحساب<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b>${$("s_calc").value}</b></div></div>
+  $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">كشف حساب أسبوعي</div></div>
+   <div class="kv"><div>الكود<b>${esc(a.code||"")}</b></div><div>اسم الحساب<b>${esc(a.name)}</b></div><div>النوع<b>${CAT[a.type]} - ${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b>${$("s_calc").value}</b></div></div>
    <div class="kv"><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
    <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>السيارة</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
    <tbody>${body||'<tr><td colspan="16">مفيش حركات في الأسبوع ده</td></tr>'}</tbody>
    <tfoot><tr><td colspan="5">الإجمالي</td><td>${T.trips}</td><td></td><td></td><td>${fmt(T.qty)}</td><td></td><td>${fmt(T.val)}</td><td>${fmt(T.pay)}</td><td${cls(T.net)}>${fmt(T.net)}</td><td></td><td></td><td></td></tr></tfoot></table></div>
    <div class="kv"><div>الرصيد السابق<b>${fmt(prev)}</b></div><div>إجمالي القيمة<b>${fmt(T.val)}</b></div><div>إجمالي الدفعات<b>${fmt(T.pay)}</b></div><div>صافي الأسبوع<b>${fmt(T.net)}</b></div>
    <div class="big">الرصيد بعد الكشف (يترحّل للأسبوع الجاي)<b>${fmt(+prev+T.net)}</b></div></div>
-   <div class="sig"><span>توقيع المحاسب: ..................</span><span>توقيع المقاول / العميل: ..................</span></div>`;
+   <div class="sig"><span>توقيع المحاسب: ..................</span><span>توقيع المقاول / العميل: ..................</span></div></div>`;
 }
 
 async function loadSummary(){
   const start=$("m_start").value; if(!start) return;
   const {data,error}=await sb.rpc("ezz_week_summary",{p_start:start}); if(error) return alert(error.message);
-  const rows=data.filter(r=>!$("m_type").value||r.type===$("m_type").value);
+  const f=$("m_type").value, code=id=>(accounts.find(a=>a.id===id)||{}).code||"";
+  const rows=data.map(r=>({...r,code:code(r.account_id)})).filter(r=>!f||r.type===f||CAT[r.type]===f).sort((a,b)=>a.code.localeCompare(b.code));
   const S=k=>rows.reduce((s,r)=>s+ +r[k],0);
-  $("smOut").innerHTML=`<div class="print-head">ملخص الأرصدة من ${start} إلى ${addDays(start,6)}</div><div class="tw"><table>
-   <thead><tr><th>اسم الحساب</th><th>النوع</th><th>الرصيد السابق</th><th>عدد النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
-   <tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.type}</td><td${cls(r.prev_balance)}>${fmt(r.prev_balance)}</td><td>${+r.trips}</td><td>${fmt(r.quantity)}</td><td>${fmt(r.value)}</td><td>${fmt(r.payments)}</td><td${cls(r.week_net)}>${fmt(r.week_net)}</td><td${cls(r.balance)}>${fmt(r.balance)}</td></tr>`).join("")}</tbody>
-   <tfoot><tr><td colspan="2">الإجمالي</td><td>${fmt(S("prev_balance"))}</td><td>${S("trips")}</td><td>${fmt(S("quantity"))}</td><td>${fmt(S("value"))}</td><td>${fmt(S("payments"))}</td><td>${fmt(S("week_net"))}</td><td>${fmt(S("balance"))}</td></tr></tfoot></table></div>`;
+  $("smOut").innerHTML=`<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">ملخص الأرصدة من ${start} إلى ${addDays(start,6)}</div></div><div class="tw"><table>
+   <thead><tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>الرصيد السابق</th><th>عدد النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${r.type}</td><td${cls(r.prev_balance)}>${fmt(r.prev_balance)}</td><td>${+r.trips}</td><td>${fmt(r.quantity)}</td><td>${fmt(r.value)}</td><td>${fmt(r.payments)}</td><td${cls(r.week_net)}>${fmt(r.week_net)}</td><td${cls(r.balance)}>${fmt(r.balance)}</td></tr>`).join("")}</tbody>
+   <tfoot><tr><td colspan="3">الإجمالي</td><td>${fmt(S("prev_balance"))}</td><td>${S("trips")}</td><td>${fmt(S("quantity"))}</td><td>${fmt(S("value"))}</td><td>${fmt(S("payments"))}</td><td>${fmt(S("week_net"))}</td><td>${fmt(S("balance"))}</td></tr></tfoot></table></div>`;
 }
 $("m_type").onchange=loadSummary;
+async function shareImage(){
+  const el=$("stSheet"); if(!el) return msg("shareMsg","اعرض الكشف الأول",false);
+  msg("shareMsg","بجهز الصورة...",true);
+  el.classList.add("capture");
+  let canvas;
+  try{ canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",windowWidth:1200}); }
+  finally{ el.classList.remove("capture"); }
+  const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));
+  const name="كشف حساب "+$("s_acc").selectedOptions[0].text+" "+$("s_start").value+".png";
+  const file=new File([blob],name,{type:"image/png"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:name}); msg("shareMsg","تمام",true); }catch(e){ if(e.name!=="AbortError") msg("shareMsg","المشاركة مكملتش",false); }
+  }else{
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+    msg("shareMsg","الصورة اتنزلت، ابعتها من الواتساب",true);
+  }
+}
 async function loadMembers(){
   const {data}=await sb.from("ezz_members").select("*").order("created_at");
   $("memTable").innerHTML="<tr><th>الإيميل</th><th>الصلاحية</th></tr>"+(data||[]).map(m=>`<tr><td>${esc(m.email)}</td><td>${m.is_admin?"مدير":"مستخدم"}</td></tr>`).join("");

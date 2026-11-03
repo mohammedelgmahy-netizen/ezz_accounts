@@ -95,3 +95,34 @@ create policy ezz_entries_auth on public.ezz_entries for all to authenticated us
 revoke all on public.ezz_accounts, public.ezz_entries, public.ezz_members from anon;
 revoke execute on function public.ezz_balance_before(bigint,date), public.ezz_week_summary(date), public.ezz_is_member(), public.ezz_is_admin(), public.ezz_claim_first_admin() from anon, public;
 grant execute on function public.ezz_balance_before(bigint,date), public.ezz_week_summary(date), public.ezz_is_member(), public.ezz_is_admin(), public.ezz_claim_first_admin() to authenticated;
+-- تكويد الحسابات: عملاء 1xxxx وموردين 2xxxx
+-- عملاء شركات 11001...  عملاء محاجر 12001...  سواقين 21001...  محاجر 22001...
+alter table public.ezz_accounts add column if not exists code text unique;
+
+create or replace function public.ezz_code_base(p_type text)
+returns int language sql immutable as $$
+  select case p_type when 'عميل شركة' then 11000 when 'عميل محجر' then 12000
+                     when 'سواق' then 21000 when 'محجر' then 22000 end;
+$$;
+
+create or replace function public.ezz_set_code()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.code is null or new.code = '' then
+    select (coalesce(max(code::int), ezz_code_base(new.type)) + 1)::text into new.code
+    from ezz_accounts where type = new.type and code ~ '^[0-9]+$'
+      and code::int between ezz_code_base(new.type) and ezz_code_base(new.type) + 999;
+  end if;
+  return new;
+end $$;
+revoke execute on function public.ezz_set_code() from anon, authenticated, public;
+
+drop trigger if exists ezz_accounts_code on public.ezz_accounts;
+create trigger ezz_accounts_code before insert on public.ezz_accounts
+for each row execute function public.ezz_set_code();
+
+-- تكويد الحسابات الموجودة قبل كده
+update public.ezz_accounts a set code = sub.c from (
+  select id, (ezz_code_base(type) + row_number() over (partition by type order by id))::text c
+  from public.ezz_accounts where code is null) sub
+where a.id = sub.id;
