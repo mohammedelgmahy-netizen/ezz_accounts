@@ -1,364 +1,631 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>كشوف الحساب الأسبوعية</title>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>عز الدين للمقاولات</title>
+<meta name="theme-color" content="#1c3a5a"><meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-:root{--bg:#f4f6f9;--card:#fff;--ink:#1d2733;--muted:#66717f;--line:#d6dce4;--pri:#1f4e78;--pri2:#e8f1fa;--inp:#fff9db;--red:#c00000;--green:#1a7f37}
-@media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b2129;--ink:#e6ebf1;--muted:#9aa6b3;--line:#2e3742;--pri:#5b9bd5;--pri2:#1f2a36;--inp:#2a2a1e;--red:#ff6b6b;--green:#4cc36b}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif;font-size:15px}
-header{background:var(--pri);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-header h1{font-size:18px;margin:0}
-nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
-nav button{background:none;border:1px solid var(--line);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
-nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
-main{padding:16px;max-width:1300px;margin:auto}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
-input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--inp);color:var(--ink);width:100%}
-input[readonly]{background:var(--pri2)}
-.btn{background:var(--pri);color:#fff;border:0;padding:9px 18px;border-radius:8px;cursor:pointer;font:inherit}
-.btn.sec{background:transparent;color:var(--pri);border:1px solid var(--pri)}
-.btn.del{background:transparent;color:var(--red);border:1px solid var(--red);padding:4px 10px}
-.row{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-top:10px}
-.tw{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{border:1px solid var(--line);padding:6px;text-align:center;white-space:nowrap}
-th{background:var(--pri);color:#fff}
-tfoot td{background:var(--pri2);font-weight:bold}
-.neg{color:var(--red)}
-.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:10px 0}
-.kv div{background:var(--pri2);border-radius:8px;padding:8px 10px}
-.kv b{display:block;font-size:17px;margin-top:2px}
-.big b{color:var(--red)}
-.msg{padding:8px 12px;border-radius:8px;margin:8px 0;display:none}
-.msg.ok{display:block;background:#e3f6e8;color:#14532d}.msg.err{display:block;background:#fde8e8;color:#7f1d1d}
-#login{max-width:380px;margin:60px auto}
-.hide{display:none!important}
-.print-head{display:none}
-.co-head{text-align:center;border-bottom:3px double var(--pri);padding-bottom:8px;margin-bottom:10px}
-.co-head .co{font-size:24px;font-weight:bold;color:var(--pri)}
-.co-head .sub{font-size:16px;margin-top:2px}
-.sheet.capture{width:1150px;background:#fff;color:#1d2733;padding:24px;--ink:#1d2733;--muted:#66717f;--line:#c9d1db;--pri:#1f4e78;--pri2:#e8f1fa;--red:#c00000}
-.sheet.capture .tw{overflow:visible}
-.sheet.capture .sig{display:flex}
-.sheet.capture th{background:#1f4e78;color:#fff}
-@media print{
-  header,nav,.noprint,.btn{display:none!important}
-  body{background:#fff;color:#000;font-size:12px}
-  main{padding:0;max-width:none}
-  .card{border:0;padding:0}
-  .print-head{display:block;text-align:center;font-size:18px;font-weight:bold;margin-bottom:6px}
-  th{background:#1f4e78!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  @page{size:A4 landscape;margin:8mm}
-  .sig{display:flex!important}
+/* Layout: same shell as خير بلدنا — fixed side menu on the right with grouped links, drawer on phones. Sand + steel blue for a contracting yard. */
+:root{
+  color-scheme:light;
+  --bg:#f6f3ea; --surface:#fffdf8; --sunk:#f0ebdd; --line:#e4dccb;
+  --fg:#16202b; --muted:#56606b; --accent:#1f4e78; --accent-fg:#fff; --accent-soft:#e3ecf5; --accent-ink:#1a4266;
+  --bad:#b42318; --bad-soft:#fbe5e2; --ok:#1f7a45; --ok-soft:#e1f3e8; --warn:#a15c07; --warn-soft:#fbefd9;
+  --top:linear-gradient(90deg,#16324f,#24527c); --top-fg:#fff; --top-line:rgb(255 255 255/.35);
+  --f-display:"Tajawal",Tahoma,sans-serif; --f-body:"Tajawal",Tahoma,"Segoe UI",sans-serif; --r:10px;
 }
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;font-weight:500;line-height:1.55;margin:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.neg{color:var(--bad)}
+.shell{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
+#side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px calc(12px + env(safe-area-inset-bottom,0px));z-index:25}
+.sbrand{display:flex;align-items:center;gap:10px;padding:2px 6px 16px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.logo{width:46px;height:46px;border-radius:10px;flex:none;border:1px solid var(--line)}
+.sbrand b{display:block;font-family:var(--f-display);font-size:17px;line-height:1.3}
+.sbrand small{font-size:13px;color:var(--muted)}
+#tabs{display:flex;flex-direction:column;gap:2px;flex:1}
+#tabs .grp{font-size:13px;color:var(--muted);padding:12px 10px 4px}
+#tabs button{display:flex;align-items:center;gap:12px;border:0;background:transparent;padding:9px 12px;border-radius:10px;text-align:start;position:relative}
+#tabs button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;opacity:.75}
+#tabs button:hover{background:var(--sunk)}
+#tabs button[aria-current="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+#tabs button[aria-current="true"]::before{content:"";position:absolute;inset-inline-start:-12px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--accent)}
+.sfoot{font-size:13px;color:var(--muted);padding:12px 8px 0;border-top:1px solid var(--line);margin-top:10px;word-break:break-all}
+#scrim{position:fixed;inset:0;background:rgb(0 0 0/.45);z-index:24}
+.main{min-width:0;padding:0 max(18px,env(safe-area-inset-left,0px)) 28px max(18px,env(safe-area-inset-right,0px))}
+.main>header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:12px;margin:0 calc(-1*max(18px,env(safe-area-inset-left,0px))) 18px;padding:12px 18px;background:var(--top);color:var(--top-fg)}
+.ttl{flex:1;min-width:0}.ttl b{display:block;font-family:var(--f-display);font-size:20px;line-height:1.3}.ttl small{font-size:13px;opacity:.8}
+.menu{display:none;border:1px solid var(--top-line);background:transparent;color:inherit;border-radius:10px;padding:7px 8px;line-height:0}
+.menu svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+@media (max-width:900px){
+  .shell{display:block}
+  #side{position:fixed;inset:0 0 0 auto;width:min(290px,86vw);transform:translateX(100%);transition:transform .25s}
+  .side-open #side{transform:none;box-shadow:-8px 0 30px rgb(0 0 0/.2)}
+  .menu{display:inline-flex}
+  .main{padding-inline:16px}.main>header{margin-inline:-16px;padding:10px 16px}
+}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px;min-width:0}
+.card h3{margin:0 0 10px;font-family:var(--f-display);font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--muted)}
+input,select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%;color:var(--fg)}
+input[readonly]{background:var(--accent-soft);font-weight:700}
+.row{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-top:10px}
+.row label{min-width:140px;flex:0 1 auto}
+.btn{border:0;border-radius:var(--r);padding:10px 16px;font-weight:700;background:var(--sunk);display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:var(--surface);border:1px solid var(--line)}
+.btn.wa{background:#1f9d55;color:#fff}
+.btn.danger{background:var(--bad-soft);color:var(--bad);padding:4px 10px}
+.btn.sm{padding:5px 10px;font-size:14px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:center;white-space:nowrap}
+th{background:var(--accent);color:#fff;font-weight:700}
+tfoot td{background:var(--accent-soft);font-weight:800}
+tbody tr:nth-child(even) td{background:#faf8f2}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi div{font-size:14px;color:var(--muted)}
+.kpi strong{font-family:var(--f-display);font-size:24px;display:block;margin-top:2px}
+.kpi.hero{background:var(--top);color:#fff;border:0}.kpi.hero div{color:rgb(255 255 255/.8)}
+.kpi.good strong{color:var(--ok)}.kpi.bad strong{color:var(--bad)}
+.msg{padding:8px 12px;border-radius:8px;margin-top:8px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}.msg.err{background:var(--bad-soft);color:var(--bad)}
+.hint{color:var(--muted);font-size:14px;margin:0 0 10px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--sunk);padding:4px;border-radius:12px;max-width:460px}
+.seg button{border:0;background:transparent;padding:10px;border-radius:9px;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent-ink);box-shadow:0 1px 4px rgb(0 0 0/.12)}
+.pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:13px;background:var(--sunk)}
+.pill.sup{background:var(--warn-soft);color:var(--warn)}.pill.cus{background:var(--accent-soft);color:var(--accent-ink)}
+/* login */
+#gate{min-height:100vh;display:grid;place-items:center;padding:20px}
+#gate .card{width:min(380px,100%);padding:22px;box-shadow:0 14px 40px rgb(40 30 0/.12);text-align:center}
+#gate .logo{width:84px;height:84px;margin:0 auto 6px;display:block;border:0}
+#gate h2{font-family:var(--f-display);margin:4px 0 2px}
+#gate form{text-align:start;display:flex;flex-direction:column;gap:12px;border-top:1px dashed var(--line);padding-top:14px;margin-top:12px}
+#gate .acts{display:flex;gap:8px}#gate .acts .btn{flex:1;justify-content:center}
+/* statement sheet */
+.co-head{text-align:center;border-bottom:3px double var(--accent);padding-bottom:8px;margin-bottom:12px}
+.co-head .co{font-family:var(--f-display);font-size:24px;font-weight:800;color:var(--accent)}
+.co-head .sub{font-size:16px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:10px 0}
+.kv div{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--muted)}
+.kv b{display:block;font-size:17px;color:var(--fg)}
+.kv .big b{color:var(--bad);font-size:20px}
 .sig{display:none;justify-content:space-between;margin-top:30px}
+.sheet.capture{width:1150px;background:#fff;padding:24px}
+.sheet.capture .tw{overflow:visible}.sheet.capture .sig{display:flex}
+@media print{
+  #side,.main>header,.noprint,#scrim{display:none!important}
+  .shell{display:block}.main{padding:0}
+  body{background:#fff;font-size:12px}
+  .card{border:0;padding:0}
+  .sig{display:flex}
+  th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 landscape;margin:8mm}
+}
 </style>
-</head>
-<body>
-<header><h1>عز الدين للمقاولات العامة والتوريدات - كشوف الحساب</h1><span id="who" class="noprint"></span></header>
+</head><body>
 
-<section id="login" class="card hide">
-  <h2>تسجيل الدخول</h2>
-  <label>الإيميل<input id="email" type="email" autocomplete="username"></label><br>
-  <label>كلمة السر<input id="pass" type="password" autocomplete="current-password"></label><br>
-  <button class="btn" onclick="login()">دخول</button> <button class="btn sec" onclick="signup()">إنشاء حساب جديد</button>
-  <div id="loginMsg" class="msg"></div>
-</section>
-
-<div id="app" class="hide">
-<nav>
-  <button data-t="entry" class="on">تسجيل حركة</button>
-  <button data-t="statement">كشف حساب</button>
-  <button data-t="summary">ملخص الأرصدة</button>
-  <button data-t="accounts">الحسابات</button>
-  <button onclick="logout()" style="margin-inline-start:auto">خروج</button>
-</nav>
-<main>
-
-<!-- تسجيل حركة -->
-<section id="t-entry">
+<div id="gate" hidden>
   <div class="card">
-    <h3 style="margin-top:0">نقلة / دفعة جديدة</h3>
-    <div class="grid">
-      <label>التاريخ<input id="e_date" type="date"></label>
-      <label>اسم الحساب<select id="e_acc" class="accSel"></select></label>
-      <label>السيارة<input id="e_vehicle"></label>
-      <label>المقطورة<input id="e_trailer"></label>
-      <label>رقم البون<input id="e_bon"></label>
-      <label>عدد النقلات<input id="e_trips" type="number" step="any" inputmode="decimal"></label>
-      <label>التكعيب<input id="e_cubic" type="number" step="any" inputmode="decimal"></label>
-      <label>الخصم<input id="e_ded" type="number" step="any" inputmode="decimal"></label>
-      <label>الكمية<input id="e_qty" readonly></label>
-      <label>السعر<input id="e_price" type="number" step="any" inputmode="decimal"></label>
-      <label>القيمة<input id="e_value" readonly></label>
-      <label>الدفعات<input id="e_pay" type="number" step="any" inputmode="decimal"></label>
-      <label>الصافي<input id="e_net" readonly></label>
-      <label>اسم المقاول<input id="e_contractor" list="contractors"></label>
-      <label>الشركة<input id="e_company" list="companies"></label>
-      <label>ملاحظات<input id="e_notes"></label>
-    </div>
-    <datalist id="contractors"></datalist><datalist id="companies"></datalist>
-    <div class="row"><button class="btn" onclick="saveEntry()">حفظ</button></div>
-    <div id="entryMsg" class="msg"></div>
+    <img class="logo" src="icon-192.png" alt="">
+    <h2>تسجيل الدخول</h2>
+    <div class="hint" style="margin:0">عز الدين للمقاولات العامة والتوريدات. البيانات محفوظة أونلاين.</div>
+    <form id="loginForm">
+      <label>الإيميل<input id="email" type="email" autocomplete="username" required></label>
+      <label>كلمة السر<input id="pass" type="password" autocomplete="current-password" required></label>
+      <div id="loginMsg" class="msg" hidden></div>
+      <div class="acts"><button class="btn primary" type="submit">دخول</button><button class="btn" type="button" id="signupBtn">حساب جديد</button></div>
+    </form>
   </div>
-  <div class="card">
-    <h3 style="margin-top:0">آخر الحركات</h3>
-    <div class="tw"><table id="recent"></table></div>
-  </div>
-</section>
+</div>
 
-<!-- كشف حساب -->
-<section id="t-statement" class="hide">
-  <div class="card noprint">
-    <div class="row" style="margin-top:0">
-      <label style="min-width:220px">اسم الحساب<select id="s_acc" class="accSel"></select></label>
-      <label>من تاريخ (أول الأسبوع)<input id="s_start" type="date"></label>
-      <label>تاريخ المحاسبة<input id="s_calc" type="date"></label>
-      <button class="btn" onclick="loadStatement()">عرض الكشف</button>
-      <button class="btn sec" onclick="shiftWeek(-7)">الأسبوع اللي فات</button>
-      <button class="btn sec" onclick="shiftWeek(7)">الأسبوع الجاي</button>
-      <button class="btn sec" onclick="window.print()">طباعة</button>
-      <button class="btn" style="background:#1a7f37" onclick="shareImage()">مشاركة كصورة (واتساب)</button>
-    </div>
-    <div id="shareMsg" class="msg"></div>
-  </div>
-  <div class="card" id="stOut"></div>
-</section>
+<div class="shell" id="app" hidden>
+  <aside id="side">
+    <div class="sbrand"><img class="logo" src="icon-192.png" alt=""><div><b>عز الدين للمقاولات</b><small>العامة والتوريدات</small></div></div>
+    <nav id="tabs">
+      <div class="grp">الرئيسية</div>
+      <button data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>الرئيسية</span></button>
+      <button data-tab="entry"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>تسجيل نقلة / دفعة</span></button>
+      <div class="grp">الحسابات</div>
+      <button data-tab="sup"><svg viewBox="0 0 24 24"><path d="M1 4h13v11H1zM14 8h4l3 3v4h-7M5.5 18.5a1.5 1.5 0 1 0 0-.01M17.5 18.5a1.5 1.5 0 1 0 0-.01"/></svg><span>الموردين</span></button>
+      <button data-tab="cus"><svg viewBox="0 0 24 24"><path d="M16 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>العملاء</span></button>
+      <button data-tab="st"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8"/></svg><span>كشف حساب</span></button>
+      <div class="grp">التقارير</div>
+      <button data-tab="purch"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6M9 20a1 1 0 1 0 0-.01M18 20a1 1 0 1 0 0-.01"/></svg><span>المشتريات</span></button>
+      <button data-tab="sales"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>المبيعات</span></button>
+      <button data-tab="profit"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg><span>الأرباح</span></button>
+      <button data-tab="bal"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></svg><span>ملخص الأرصدة</span></button>
+      <div class="grp">أدوات</div>
+      <button data-tab="users"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>المستخدمين</span></button>
+      <button id="logout"><svg viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l-5-5 5-5M5 12h11"/></svg><span>تسجيل خروج</span></button>
+    </nav>
+    <div class="sfoot" id="who"></div>
+  </aside>
+  <div id="scrim" hidden></div>
+  <div class="main">
+    <header>
+      <button class="menu" id="menuBtn" aria-label="القائمة"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div class="ttl"><b id="pgTitle">الرئيسية</b><small>عز الدين للمقاولات العامة والتوريدات</small></div>
+    </header>
 
-<!-- ملخص -->
-<section id="t-summary" class="hide">
-  <div class="card noprint">
-    <div class="row" style="margin-top:0">
-      <label>من تاريخ (أول الأسبوع)<input id="m_start" type="date"></label>
-      <label>عرض<select id="m_type"><option value="">الكل</option><option value="مورد">الموردين بس</option><option value="عميل">العملاء بس</option><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
-      <button class="btn" onclick="loadSummary()">عرض</button>
-      <button class="btn sec" onclick="window.print()">طباعة</button>
-    </div>
-  </div>
-  <div class="card" id="smOut"></div>
-</section>
+    <!-- الرئيسية -->
+    <section id="v-home" hidden>
+      <div class="kpis" id="homeKpis"></div>
+      <div class="card"><h3>آخر الحركات</h3><div class="tw"><table id="homeRecent"></table></div></div>
+    </section>
 
-<!-- الحسابات -->
-<section id="t-accounts" class="hide">
-  <div class="card">
-    <h3 style="margin-top:0">حساب جديد</h3>
-    <div class="grid">
-      <label>اسم الحساب<input id="a_name"></label>
-      <label>النوع<select id="a_type"><optgroup label="الموردين"><option>سواق</option><option>محجر</option></optgroup><optgroup label="العملاء"><option>عميل محجر</option><option>عميل شركة</option></optgroup></select></label>
-      <label>التليفون<input id="a_phone" inputmode="tel"></label>
-      <label>رصيد افتتاحي<input id="a_open" type="number" step="any" value="0"></label>
-      <label>ملاحظات<input id="a_notes"></label>
-    </div>
-    <div class="row"><button class="btn" onclick="saveAccount()">إضافة</button></div>
-    <div id="accMsg" class="msg"></div>
-  </div>
-  <div class="card"><h3 style="margin-top:0">الموردين</h3><div class="tw"><table id="supTable"></table></div></div>
-  <div class="card"><h3 style="margin-top:0">العملاء</h3><div class="tw"><table id="cusTable"></table></div></div>
-  <div class="card">
-    <h3 style="margin-top:0">المستخدمين المسموح لهم يدخلوا البرنامج</h3>
-    <div class="tw"><table id="memTable"></table></div>
-    <div class="row"><label style="min-width:240px">إيميل مستخدم جديد<input id="m_email" type="email"></label>
-      <button class="btn" onclick="addMember()">إضافة مستخدم</button></div>
-    <div id="memMsg" class="msg"></div>
-  </div>
-</section>
+    <!-- تسجيل -->
+    <section id="v-entry" hidden>
+      <div class="card">
+        <h3>نقلة / دفعة جديدة</h3>
+        <div class="grid">
+          <label>التاريخ<input id="e_date" type="date"></label>
+          <label style="grid-column:span 2">اسم الحساب<select id="e_acc" class="accSel" data-cat=""></select></label>
+          <label>السيارة<input id="e_vehicle"></label>
+          <label>المقطورة<input id="e_trailer"></label>
+          <label>رقم البون<input id="e_bon"></label>
+          <label>عدد النقلات<input id="e_trips" type="number" step="any" inputmode="decimal"></label>
+          <label>التكعيب<input id="e_cubic" type="number" step="any" inputmode="decimal"></label>
+          <label>الخصم<input id="e_ded" type="number" step="any" inputmode="decimal"></label>
+          <label>الكمية<input id="e_qty" readonly></label>
+          <label>السعر<input id="e_price" type="number" step="any" inputmode="decimal"></label>
+          <label>القيمة<input id="e_value" readonly></label>
+          <label>الدفعات<input id="e_pay" type="number" step="any" inputmode="decimal"></label>
+          <label>الصافي<input id="e_net" readonly></label>
+          <label>اسم المقاول<input id="e_contractor" list="contractors"></label>
+          <label>الشركة<input id="e_company" list="companies"></label>
+          <label>ملاحظات<input id="e_notes"></label>
+        </div>
+        <datalist id="contractors"></datalist><datalist id="companies"></datalist>
+        <div class="row"><button class="btn primary" id="saveEntry">حفظ</button></div>
+        <div id="entryMsg" class="msg" hidden></div>
+      </div>
+      <div class="card"><h3>آخر الحركات</h3><div class="tw"><table id="recent"></table></div></div>
+    </section>
 
-</main>
+    <!-- الموردين / العملاء -->
+    <section id="v-acc" hidden>
+      <div class="card">
+        <h3 id="accFormTitle">إضافة</h3>
+        <div class="grid">
+          <label>اسم الحساب<input id="a_name"></label>
+          <label>النوع<select id="a_type"></select></label>
+          <label>التليفون<input id="a_phone" inputmode="tel"></label>
+          <label>رصيد افتتاحي<input id="a_open" type="number" step="any" value="0"></label>
+          <label>ملاحظات<input id="a_notes"></label>
+        </div>
+        <div class="row"><button class="btn primary" id="saveAcc">إضافة</button></div>
+        <div id="accMsg" class="msg" hidden></div>
+      </div>
+      <div class="card"><h3 id="accListTitle"></h3>
+        <div class="row" style="margin:0 0 10px"><label>بحث بالاسم أو الكود<input id="accSearch"></label></div>
+        <div class="tw"><table id="accTable"></table></div></div>
+    </section>
+
+    <!-- كشف حساب -->
+    <section id="v-st" hidden>
+      <div class="card noprint">
+        <div class="seg" role="tablist"><button id="segCus" data-cat="عميل">كشف حساب عميل</button><button id="segSup" data-cat="مورد">كشف حساب مورد</button></div>
+        <div class="row">
+          <label style="min-width:240px" id="s_accLbl">الحساب<select id="s_acc" class="accSel"></select></label>
+          <label>من تاريخ (أول الأسبوع)<input id="s_start" type="date"></label>
+          <label>تاريخ المحاسبة<input id="s_calc" type="date"></label>
+          <button class="btn primary" id="stShow">عرض الكشف</button>
+          <button class="btn ghost" id="stPrev">الأسبوع اللي فات</button>
+          <button class="btn ghost" id="stNext">الأسبوع الجاي</button>
+        </div>
+        <div class="row">
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" id="stShare">مشاركة كصورة (واتساب)</button>
+        </div>
+        <div id="shareMsg" class="msg" hidden></div>
+      </div>
+      <div class="card" id="stOut"><p class="hint">اختار الحساب وأول يوم في الأسبوع واضغط «عرض الكشف».</p></div>
+    </section>
+
+    <!-- المشتريات / المبيعات -->
+    <section id="v-reg" hidden>
+      <div class="card noprint">
+        <div class="row" style="margin-top:0">
+          <label>من<input id="r_from" type="date"></label>
+          <label>إلى<input id="r_to" type="date"></label>
+          <label>النوع<select id="r_type"></select></label>
+          <label style="min-width:220px">الحساب<select id="r_acc" class="accSel"></select></label>
+          <button class="btn primary" id="regShow">عرض</button>
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+        </div>
+      </div>
+      <div id="regOut"></div>
+    </section>
+
+    <!-- الأرباح -->
+    <section id="v-profit" hidden>
+      <div class="card noprint">
+        <div class="row" style="margin-top:0">
+          <label>من<input id="p_from" type="date"></label>
+          <label>إلى<input id="p_to" type="date"></label>
+          <button class="btn primary" id="profitShow">عرض</button>
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+        </div>
+        <p class="hint" style="margin:10px 0 0">الربح = قيمة المبيعات للعملاء ناقص قيمة المشتريات من السواقين والمحاجر في نفس الفترة.</p>
+      </div>
+      <div id="profitOut"></div>
+    </section>
+
+    <!-- ملخص الأرصدة -->
+    <section id="v-bal" hidden>
+      <div class="card noprint">
+        <div class="row" style="margin-top:0">
+          <label>من تاريخ (أول الأسبوع)<input id="b_start" type="date"></label>
+          <label>عرض<select id="b_type"><option value="">الكل</option><option value="مورد">الموردين بس</option><option value="عميل">العملاء بس</option><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
+          <button class="btn primary" id="balShow">عرض</button>
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+        </div>
+      </div>
+      <div class="card" id="balOut"></div>
+    </section>
+
+    <!-- المستخدمين -->
+    <section id="v-users" hidden>
+      <div class="card">
+        <h3>المستخدمين المسموح لهم يدخلوا البرنامج</h3>
+        <p class="hint">ضيف إيميل الشخص هنا، وبعدين هو يعمل «حساب جديد» بنفس الإيميل من شاشة الدخول.</p>
+        <div class="tw"><table id="memTable"></table></div>
+        <div class="row"><label style="min-width:240px">إيميل مستخدم جديد<input id="m_email" type="email"></label><button class="btn primary" id="addMem">إضافة مستخدم</button></div>
+        <div id="memMsg" class="msg" hidden></div>
+      </div>
+      <div class="card">
+        <h3>نسخة احتياطية</h3>
+        <p class="hint">بينزّل كل الحسابات والحركات في ملف Excel. يستحسن تعملها كل أسبوع.</p>
+        <button class="btn ghost" id="backup">تنزيل نسخة احتياطية (Excel)</button>
+      </div>
+    </section>
+  </div>
 </div>
 
 <script>
-// ====== الإعدادات: رابط ومفتاح Supabase ======
-const SUPABASE_URL = "https://lhamdnaxioxqptkylvkg.supabase.co";
-const SUPABASE_KEY = "sb_publishable_X6F5g148JSlVUz5sy0XEcw_KGNK218S";
-// ============================================
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const $ = id => document.getElementById(id);
-const fmt = n => (n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
-const cls = n => Number(n)<0?' class="neg"':'';
-const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const iso = d => new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
-const addDays = (s,n) => { const d=new Date(s+"T00:00:00"); d.setDate(d.getDate()+n); return iso(d); };
-function lastSaturday(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+1)%7)); return iso(d); }
-function msg(id,t,ok){ const m=$(id); m.textContent=t; m.className="msg "+(ok?"ok":"err"); if(ok) setTimeout(()=>m.className="msg",2500); }
-let accounts=[];
-const CAT={"سواق":"مورد","محجر":"مورد","عميل محجر":"عميل","عميل شركة":"عميل"};
-const GROUPS=[["الموردين",[["سواق","سواقين"],["محجر","محاجر"]]],["العملاء",[["عميل محجر","عملاء محاجر"],["عميل شركة","عملاء شركات"]]]];
-const lbl=a=>(a.code?a.code+" - ":"")+a.name;
+const SUPABASE_URL="https://lhamdnaxioxqptkylvkg.supabase.co";
+const SUPABASE_KEY="sb_publishable_X6F5g148JSlVUz5sy0XEcw_KGNK218S";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const fmt=n=>(n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const N=v=>v==null||v===""?"":Number(v).toLocaleString("en-US",{maximumFractionDigits:2});
+const cls=n=>Number(n)<0?' class="neg num"':' class="num"';
+const esc=s=>(s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const addDays=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return iso(d);};
+const satOf=s=>{const d=new Date((s||iso(new Date()))+"T00:00:00");d.setDate(d.getDate()-((d.getDay()+1)%7));return iso(d);};
+const today=()=>iso(new Date());
+const monthStart=()=>today().slice(0,8)+"01";
+function msg(id,t,ok){const m=$(id);m.textContent=t;m.className="msg "+(ok?"ok":"err");m.hidden=false;if(ok)setTimeout(()=>m.hidden=true,3000);}
 
-document.querySelectorAll("nav button[data-t]").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("nav button[data-t]").forEach(x=>x.classList.toggle("on",x===b));
-  ["entry","statement","summary","accounts"].forEach(t=>$("t-"+t).classList.toggle("hide",t!==b.dataset.t));
-  if(b.dataset.t==="summary") loadSummary();
-});
+const TYPES={"سواق":"مورد","محجر":"مورد","عميل محجر":"عميل","عميل شركة":"عميل"};
+const CATTYPES={"مورد":["سواق","محجر"],"عميل":["عميل محجر","عميل شركة"]};
+const PLURAL={"سواق":"سواقين","محجر":"محاجر","عميل محجر":"عملاء محاجر","عميل شركة":"عملاء شركات"};
+let accounts=[], entries=[], isAdmin=false;
+const accById=id=>accounts.find(a=>a.id===id)||{};
+const lbl=a=>(a.code?a.code+" - ":"")+(a.name||"");
+const catOf=e=>TYPES[accById(e.account_id).type];
+const isTrip=e=>e.trips!=null;
 
-async function login(){
-  const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pass").value});
-  if(error) msg("loginMsg","الإيميل أو كلمة السر غلط",false); else init();
+/* ---------- data ---------- */
+async function loadAll(){
+  const {data:acc,error:e1}=await sb.from("ezz_accounts").select("*");
+  if(e1){alert("مشكلة في تحميل الحسابات: "+e1.message);return;}
+  accounts=acc.sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
+  let all=[],from=0;
+  for(;;){const {data,error}=await sb.from("ezz_entries").select("*").order("id").range(from,from+999);
+    if(error){alert("مشكلة في تحميل الحركات: "+error.message);break;}
+    all=all.concat(data); if(data.length<1000)break; from+=1000;}
+  entries=all.map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
+  fillSelects(); fillDatalists();
 }
-async function signup(){
-  const email=$("email").value.trim(), password=$("pass").value;
-  if(!email||password.length<6) return msg("loginMsg","اكتب الإيميل وكلمة سر 6 حروف على الأقل",false);
-  const {data,error}=await sb.auth.signUp({email,password});
-  if(error) return msg("loginMsg",error.message,false);
-  if(data.session) init(); else msg("loginMsg","اتبعتلك رسالة تأكيد على الإيميل، افتحها وبعدين ادخل",true);
-}
-async function logout(){ await sb.auth.signOut(); location.reload(); }
+const balBefore=(id,d)=>(+accById(id).opening_balance||0)+entries.filter(e=>e.account_id===id&&e.entry_date<d).reduce((s,e)=>s+e.net,0);
+const balNow=id=>(+accById(id).opening_balance||0)+entries.filter(e=>e.account_id===id).reduce((s,e)=>s+e.net,0);
+const sum=(arr,k)=>arr.reduce((s,e)=>s+(+e[k]||0),0);
 
-async function init(){
-  const {data:{session}}=await sb.auth.getSession();
-  $("login").classList.toggle("hide",!!session); $("app").classList.toggle("hide",!session);
-  if(!session) return;
-  $("who").textContent=session.user.email;
-  const {data:ok}=await sb.rpc("ezz_claim_first_admin");
-  if(!ok){ $("app").classList.add("hide"); $("login").classList.remove("hide"); msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة الحسابات.",false); return; }
-  loadMembers();
-  const today=iso(new Date());
-  $("e_date").value=today; $("s_start").value=lastSaturday(); $("m_start").value=lastSaturday(); $("s_calc").value=today;
-  await loadAccounts(); await loadRecent();
+function optionsFor(cat,withAll){
+  const types=cat?CATTYPES[cat]:["سواق","محجر","عميل محجر","عميل شركة"];
+  return (withAll?'<option value="">الكل</option>':'<option value="">-- اختار --</option>')+types.map(t=>{
+    const g=accounts.filter(a=>a.type===t);
+    return g.length?`<optgroup label="${TYPES[t]==="مورد"?"الموردين":"العملاء"} - ${PLURAL[t]}">`+g.map(a=>`<option value="${a.id}">${esc(lbl(a))}</option>`).join("")+"</optgroup>":"";
+  }).join("");
 }
-
-async function loadAccounts(){
-  const {data,error}=await sb.from("ezz_accounts").select("*").order("type").order("name");
-  if(error){ alert(error.message); return; }
-  accounts=data;
-  data.sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
-  const opts='<option value="">-- اختار --</option>'+GROUPS.flatMap(([cat,ts])=>ts.map(([t,pl])=>{
-    const g=data.filter(a=>a.type===t); return g.length?`<optgroup label="${cat} - ${pl}">`+g.map(a=>`<option value="${a.id}">${esc(lbl(a))}</option>`).join("")+"</optgroup>":"";
-  })).join("");
-  document.querySelectorAll(".accSel").forEach(s=>{const v=s.value; s.innerHTML=opts; s.value=v;});
-  const head="<tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>ملاحظات</th><th></th></tr>";
-  const row=a=>`<tr><td><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${a.type}</td><td>${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td>${esc(a.notes)}</td>
-    <td><button class="btn sec" onclick="editOpening(${a.id})">تعديل الرصيد الافتتاحي</button></td></tr>`;
-  const empty='<tr><td colspan="7">لسه مفيش حسابات</td></tr>';
-  const sup=data.filter(a=>CAT[a.type]==="مورد"), cus=data.filter(a=>CAT[a.type]==="عميل");
-  $("supTable").innerHTML=head+(sup.map(row).join("")||empty);
-  $("cusTable").innerHTML=head+(cus.map(row).join("")||empty);
+function fillSelects(){
+  document.querySelectorAll(".accSel").forEach(s=>{const v=s.value;s.innerHTML=optionsFor(s.dataset.cat||"",s.id==="r_acc");s.value=v;});
 }
-async function saveAccount(){
-  const name=$("a_name").value.trim(); if(!name) return msg("accMsg","اكتب اسم الحساب",false);
-  const {data:ins,error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).select();
-  if(error) return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
-  ["a_name","a_phone","a_notes"].forEach(i=>$(i).value=""); $("a_open").value=0;
-  msg("accMsg","تم إضافة الحساب"+(ins&&ins[0]&&ins[0].code?" بكود "+ins[0].code:""),true); loadAccounts();
-}
-async function editOpening(id){
-  const a=accounts.find(x=>x.id===id); const v=prompt("الرصيد الافتتاحي لـ "+a.name, a.opening_balance); if(v===null) return;
-  const {error}=await sb.from("ezz_accounts").update({opening_balance:+v||0}).eq("id",id);
-  if(error) alert(error.message); else loadAccounts();
+function fillDatalists(){
+  const cs=new Set(),co=new Set();entries.forEach(r=>{if(r.contractor)cs.add(r.contractor);if(r.company)co.add(r.company);});
+  $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join("");$("companies").innerHTML=[...co].map(x=>`<option value="${esc(x)}">`).join("");
 }
 
-const num = id => $(id).value===""?null:+$(id).value;
+/* ---------- navigation ---------- */
+const TITLES={home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",bal:"ملخص الأرصدة",users:"المستخدمين"};
+const VIEW={home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",bal:"bal",users:"users"};
+let tab="home";
+function side(o){document.body.classList.toggle("side-open",o);$("scrim").hidden=!o;}
+$("menuBtn").onclick=()=>side(true);$("scrim").onclick=()=>side(false);
+document.querySelectorAll("#tabs button[data-tab]").forEach(b=>b.onclick=()=>{go(b.dataset.tab);side(false);});
+function go(t,opts={}){
+  tab=t;
+  document.querySelectorAll("#tabs button[data-tab]").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===t));
+  document.querySelectorAll("main section, .main section").forEach(s=>s.hidden=s.id!=="v-"+VIEW[t]);
+  $("pgTitle").textContent=TITLES[t];
+  if(t==="home")renderHome();
+  if(t==="entry")renderRecent();
+  if(t==="sup"||t==="cus")setupAcc(t==="sup"?"مورد":"عميل");
+  if(t==="st")setupSt(opts.cat||stCat,opts.acc);
+  if(t==="purch"||t==="sales")setupReg(t==="purch"?"مورد":"عميل");
+  if(t==="profit")renderProfit();
+  if(t==="bal")renderBal();
+  if(t==="users")loadMembers();
+  window.scrollTo(0,0);
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  const s=satOf(),e=addDays(s,6),wk=entries.filter(x=>x.entry_date>=s&&x.entry_date<=e);
+  const sales=sum(wk.filter(x=>catOf(x)==="عميل"),"value"),pur=sum(wk.filter(x=>catOf(x)==="مورد"),"value");
+  const owe=accounts.filter(a=>TYPES[a.type]==="مورد").reduce((t,a)=>t+balNow(a.id),0);
+  const due=accounts.filter(a=>TYPES[a.type]==="عميل").reduce((t,a)=>t+balNow(a.id),0);
+  const trips=sum(wk.filter(x=>catOf(x)==="عميل"),"trips");
+  $("homeKpis").innerHTML=`
+   <div class="kpi hero"><div>ربح الأسبوع (${s} إلى ${e})</div><strong class="num">${fmt(sales-pur)}</strong></div>
+   <div class="kpi"><div>مبيعات الأسبوع</div><strong class="num">${fmt(sales)}</strong></div>
+   <div class="kpi"><div>مشتريات الأسبوع</div><strong class="num">${fmt(pur)}</strong></div>
+   <div class="kpi"><div>نقلات العملاء الأسبوع ده</div><strong class="num">${N(trips)}</strong></div>
+   <div class="kpi bad"><div>مستحق للموردين (علينا)</div><strong class="num">${fmt(owe)}</strong></div>
+   <div class="kpi good"><div>مستحق من العملاء (لينا)</div><strong class="num">${fmt(due)}</strong></div>`;
+  $("homeRecent").innerHTML=recentTable(entries.slice().sort((a,b)=>b.id-a.id).slice(0,10),false);
+}
+function recentTable(rows,del){
+  return "<tr><th>التاريخ</th><th>الحساب</th><th></th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th>"+(del?"<th></th>":"")+"</tr>"+
+   (rows.map(r=>{const a=accById(r.account_id),c=TYPES[a.type];return `<tr><td class="num">${r.entry_date}</td><td>${esc(lbl(a))}</td><td><span class="pill ${c==="مورد"?"sup":"cus"}">${c||""}</span></td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.cubic)}</td><td class="num">${r.deduction||""}</td>
+    <td class="num">${isTrip(r)?N(r.quantity):""}</td><td class="num">${N(r.price)}</td><td class="num">${isTrip(r)?fmt(r.value):""}</td><td class="num">${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td>
+    ${del?`<td><button class="btn danger" onclick="delEntry(${r.id})">مسح</button></td>`:""}</tr>`;}).join("")||'<tr><td colspan="14">لسه مفيش حركات</td></tr>');
+}
+
+/* ---------- entry ---------- */
+const num=id=>$(id).value===""?null:+$(id).value;
 function calcEntry(){
   const t=num("e_trips"),c=num("e_cubic"),d=num("e_ded")||0,p=num("e_price")||0,pay=num("e_pay")||0;
-  const q=(t||0)*(c||0)-d, v=q*p;
-  $("e_qty").value=t!=null?fmt(q):""; $("e_value").value=t!=null?fmt(v):""; $("e_net").value=fmt(v-pay);
+  const q=(t||0)*(c||0)-d,v=q*p;
+  $("e_qty").value=t!=null?N(q):"";$("e_value").value=t!=null?fmt(v):"";$("e_net").value=fmt(v-pay);
 }
 ["e_trips","e_cubic","e_ded","e_price","e_pay"].forEach(i=>$(i).addEventListener("input",calcEntry));
-$("e_acc").addEventListener("change",async()=>{ // اقتراح آخر بيانات للحساب
-  const id=$("e_acc").value; if(!id) return;
-  const {data}=await sb.from("ezz_entries").select("vehicle,trailer,cubic,price,contractor,company").eq("account_id",id).not("trips","is",null).order("entry_date",{ascending:false}).order("id",{ascending:false}).limit(1);
-  if(data&&data[0]){ const r=data[0];
-    [["e_vehicle","vehicle"],["e_trailer","trailer"],["e_cubic","cubic"],["e_price","price"],["e_contractor","contractor"],["e_company","company"]].forEach(([i,k])=>{ if(!$(i).value&&r[k]!=null) $(i).value=r[k]; });
-    calcEntry(); }
+$("e_acc").addEventListener("change",()=>{
+  const id=+$("e_acc").value;if(!id)return;
+  const r=entries.filter(e=>e.account_id===id&&isTrip(e)).sort((a,b)=>b.id-a.id)[0];
+  if(r)[["e_vehicle","vehicle"],["e_trailer","trailer"],["e_cubic","cubic"],["e_price","price"],["e_contractor","contractor"],["e_company","company"]].forEach(([i,k])=>{if(!$(i).value&&r[k]!=null)$(i).value=r[k];});
+  calcEntry();
 });
-async function saveEntry(){
-  if(!$("e_date").value||!$("e_acc").value) return msg("entryMsg","اختار التاريخ واسم الحساب",false);
-  if(num("e_trips")==null && !num("e_pay")) return msg("entryMsg","اكتب عدد النقلات أو مبلغ الدفعة",false);
+$("saveEntry").onclick=async()=>{
+  if(!$("e_date").value||!$("e_acc").value)return msg("entryMsg","اختار التاريخ واسم الحساب",false);
+  if(num("e_trips")==null&&!num("e_pay"))return msg("entryMsg","اكتب عدد النقلات أو مبلغ الدفعة",false);
   const row={entry_date:$("e_date").value,account_id:+$("e_acc").value,vehicle:$("e_vehicle").value||null,trailer:$("e_trailer").value||null,
     bon_no:$("e_bon").value||null,trips:num("e_trips"),cubic:num("e_cubic"),deduction:num("e_ded")||0,price:num("e_price"),
     payments:num("e_pay")||0,contractor:$("e_contractor").value||null,company:$("e_company").value||null,notes:$("e_notes").value||null};
-  const {error}=await sb.from("ezz_entries").insert(row);
-  if(error) return msg("entryMsg",error.message,false);
+  const b=$("saveEntry");b.disabled=true;
+  const {error}=await sb.from("ezz_entries").insert(row);b.disabled=false;
+  if(error)return msg("entryMsg","متحفظتش: "+error.message,false);
   ["e_bon","e_trips","e_ded","e_pay","e_notes","e_qty","e_value","e_net"].forEach(i=>$(i).value="");
-  msg("entryMsg","تم الحفظ",true); loadRecent();
-}
-async function loadRecent(){
-  const {data,error}=await sb.from("ezz_entries").select("*,ezz_accounts(name,code)").order("created_at",{ascending:false}).limit(30);
-  if(error) return;
-  const cs=new Set(),co=new Set();
-  data.forEach(r=>{ if(r.contractor) cs.add(r.contractor); if(r.company) co.add(r.company); });
-  $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join(""); $("companies").innerHTML=[...co].map(x=>`<option value="${esc(x)}">`).join("");
-  $("recent").innerHTML="<tr><th>التاريخ</th><th>الحساب</th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th><th></th></tr>"+
-    data.map(r=>`<tr><td>${r.entry_date}</td><td>${esc(r.ezz_accounts?lbl(r.ezz_accounts):"")}</td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
-    <td>${r.trips!=null?fmt(r.quantity):""}</td><td>${r.price??""}</td><td>${r.trips!=null?fmt(r.value):""}</td><td>${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td>
-    <td><button class="btn del" onclick="delEntry(${r.id})">مسح</button></td></tr>`).join("");
-}
+  msg("entryMsg","تم الحفظ",true);await loadAll();renderRecent();
+};
+function renderRecent(){$("recent").innerHTML=recentTable(entries.slice().sort((a,b)=>b.id-a.id).slice(0,30),true);}
 async function delEntry(id){
-  if(!confirm("متأكد إنك عايز تمسح الحركة دي؟ ده هيغيّر الأرصدة.")) return;
-  const {error}=await sb.from("ezz_entries").delete().eq("id",id); if(error) alert(error.message); else loadRecent();
+  if(!confirm("متأكد إنك عايز تمسح الحركة دي؟ ده هيغيّر الأرصدة."))return;
+  const {error}=await sb.from("ezz_entries").delete().eq("id",id);if(error)return alert(error.message);
+  await loadAll();renderRecent();
 }
 
-function shiftWeek(n){ $("s_start").value=addDays($("s_start").value,n); loadStatement(); }
-async function loadStatement(){
-  const id=+$("s_acc").value, start=$("s_start").value; if(!id||!start) return alert("اختار الحساب وتاريخ أول الأسبوع");
-  const end=addDays(start,6), a=accounts.find(x=>x.id===id);
-  const [{data:prev,error:e1},{data:rows,error:e2}]=await Promise.all([
-    sb.rpc("ezz_balance_before",{p_account:id,p_date:start}),
-    sb.from("ezz_entries").select("*").eq("account_id",id).gte("entry_date",start).lte("entry_date",end).order("entry_date").order("id")]);
-  if(e1||e2) return alert((e1||e2).message);
-  let bal=+prev, T={trips:0,qty:0,val:0,pay:0,net:0};
-  const body=rows.map((r,i)=>{ bal+=+r.net; const tr=r.trips!=null;
-    if(tr){T.trips+=+r.trips;T.qty+=+r.quantity;T.val+=+r.value;} T.pay+=+r.payments; T.net+=+r.net;
-    return `<tr><td>${i+1}</td><td>${r.entry_date}</td><td>${esc(r.vehicle)}</td><td>${esc(r.trailer)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
-    <td>${tr?fmt(r.quantity):""}</td><td>${r.price??""}</td><td>${tr?fmt(r.value):""}</td><td>${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(bal)}>${fmt(bal)}</td><td>${esc(r.contractor)}</td><td>${esc(r.company)}</td></tr>`;}).join("");
-  $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">كشف حساب أسبوعي</div></div>
-   <div class="kv"><div>الكود<b>${esc(a.code||"")}</b></div><div>اسم الحساب<b>${esc(a.name)}</b></div><div>النوع<b>${CAT[a.type]} - ${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b>${$("s_calc").value}</b></div></div>
-   <div class="kv"><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
+/* ---------- accounts ---------- */
+let accCat="مورد";
+function setupAcc(cat){
+  accCat=cat;
+  $("accFormTitle").textContent=cat==="مورد"?"إضافة مورد (سواق أو محجر)":"إضافة عميل (عميل محجر أو عميل شركة)";
+  $("accListTitle").textContent=cat==="مورد"?"الموردين":"العملاء";
+  $("a_type").innerHTML=CATTYPES[cat].map(t=>`<option>${t}</option>`).join("");
+  $("accMsg").hidden=true;renderAccTable();
+}
+$("accSearch").oninput=()=>renderAccTable();
+function renderAccTable(){
+  const q=$("accSearch").value.trim();
+  const rows=accounts.filter(a=>TYPES[a.type]===accCat&&(!q||a.name.includes(q)||(a.code||"").includes(q)));
+  
+  $("accTable").innerHTML="<tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>الرصيد الحالي</th><th>ملاحظات</th><th></th></tr>"+
+   (rows.map(a=>{const b=balNow(a.id);return `<tr><td class="num"><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${a.type}</td><td class="num">${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td${cls(b)}><b>${fmt(b)}</b></td><td>${esc(a.notes)}</td>
+    <td><button class="btn sm primary" onclick="go('st',{cat:'${accCat}',acc:${a.id}})">كشف حساب</button> <button class="btn sm ghost" onclick="editOpening(${a.id})">تعديل الرصيد الافتتاحي</button></td></tr>`;}).join("")||'<tr><td colspan="8">لسه مفيش حسابات</td></tr>');
+}
+$("saveAcc").onclick=async()=>{
+  const name=$("a_name").value.trim();if(!name)return msg("accMsg","اكتب اسم الحساب",false);
+  const {data,error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).select();
+  if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
+  ["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;
+  msg("accMsg","تم إضافة الحساب"+(data&&data[0]&&data[0].code?" بكود "+data[0].code:""),true);await loadAll();renderAccTable();
+};
+async function editOpening(id){
+  const a=accById(id);const v=prompt("الرصيد الافتتاحي لـ "+a.name,a.opening_balance);if(v===null)return;
+  const {error}=await sb.from("ezz_accounts").update({opening_balance:+v||0}).eq("id",id);
+  if(error)return alert(error.message);await loadAll();renderAccTable();
+}
+
+/* ---------- statement ---------- */
+let stCat="عميل";
+document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>setupSt(b.dataset.cat));
+function setupSt(cat,acc){
+  stCat=cat;$("s_acc").dataset.cat=cat;fillSelects();
+  document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cat===cat));
+  $("s_accLbl").firstChild.textContent=cat==="مورد"?"المورد":"العميل";
+  if(!$("s_start").value)$("s_start").value=satOf();
+  if(!$("s_calc").value)$("s_calc").value=today();
+  if(acc){$("s_acc").value=String(acc);}
+  if($("s_acc").value&&TYPES[accById(+$("s_acc").value).type]===cat)renderSt();
+  else{$("s_acc").value="";$("stOut").innerHTML=`<p class="hint">اختار ${cat==="مورد"?"المورد":"العميل"} وأول يوم في الأسبوع واضغط «عرض الكشف».</p>`;}
+}
+$("stShow").onclick=()=>renderSt();
+$("stPrev").onclick=()=>{$("s_start").value=addDays($("s_start").value,-7);renderSt();};
+$("stNext").onclick=()=>{$("s_start").value=addDays($("s_start").value,7);renderSt();};
+function renderSt(){
+  const id=+$("s_acc").value,start=$("s_start").value;if(!id||!start)return;
+  const a=accById(id),end=addDays(start,6),prev=balBefore(id,start);
+  const rows=entries.filter(e=>e.account_id===id&&e.entry_date>=start&&e.entry_date<=end).sort((x,y)=>x.entry_date.localeCompare(y.entry_date)||x.id-y.id);
+  let bal=prev;const T={trips:0,qty:0,val:0,pay:0,net:0};
+  const body=rows.map((r,i)=>{bal+=r.net;const tr=isTrip(r);if(tr){T.trips+=r.trips;T.qty+=r.quantity;T.val+=r.value;}T.pay+=r.payments;T.net+=r.net;
+    return `<tr><td>${i+1}</td><td class="num">${r.entry_date}</td><td>${esc(r.vehicle)}</td><td>${esc(r.trailer)}</td><td>${esc(r.bon_no)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.cubic)}</td><td class="num">${r.deduction||""}</td>
+    <td class="num">${tr?N(r.quantity):""}</td><td class="num">${N(r.price)}</td><td class="num">${tr?fmt(r.value):""}</td><td class="num">${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(bal)}>${fmt(bal)}</td><td>${esc(r.contractor)}</td><td>${esc(r.company)}</td></tr>`;}).join("");
+  const kind=TYPES[a.type]==="مورد"?"مورد":"عميل";
+  const final=prev+T.net;
+  const meaning=kind==="مورد"?(final>=0?"مستحق للمورد عندنا":"مستحق لينا عند المورد"):(final>=0?"مستحق لينا عند العميل":"مستحق للعميل عندنا");
+  $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">كشف حساب ${kind} أسبوعي</div></div>
+   <div class="kv"><div>الكود<b class="num">${esc(a.code||"")}</b></div><div>اسم ال${kind}<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b class="num">${$("s_calc").value}</b></div><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
    <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>السيارة</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
    <tbody>${body||'<tr><td colspan="16">مفيش حركات في الأسبوع ده</td></tr>'}</tbody>
-   <tfoot><tr><td colspan="5">الإجمالي</td><td>${T.trips}</td><td></td><td></td><td>${fmt(T.qty)}</td><td></td><td>${fmt(T.val)}</td><td>${fmt(T.pay)}</td><td${cls(T.net)}>${fmt(T.net)}</td><td></td><td></td><td></td></tr></tfoot></table></div>
-   <div class="kv"><div>الرصيد السابق<b>${fmt(prev)}</b></div><div>إجمالي القيمة<b>${fmt(T.val)}</b></div><div>إجمالي الدفعات<b>${fmt(T.pay)}</b></div><div>صافي الأسبوع<b>${fmt(T.net)}</b></div>
-   <div class="big">الرصيد بعد الكشف (يترحّل للأسبوع الجاي)<b>${fmt(+prev+T.net)}</b></div></div>
-   <div class="sig"><span>توقيع المحاسب: ..................</span><span>توقيع المقاول / العميل: ..................</span></div></div>`;
+   <tfoot><tr><td colspan="5">الإجمالي</td><td class="num">${N(T.trips)}</td><td></td><td></td><td class="num">${N(T.qty)}</td><td></td><td class="num">${fmt(T.val)}</td><td class="num">${fmt(T.pay)}</td><td${cls(T.net)}>${fmt(T.net)}</td><td></td><td></td><td></td></tr></tfoot></table></div>
+   <div class="kv"><div>الرصيد السابق<b class="num">${fmt(prev)}</b></div><div>إجمالي القيمة<b class="num">${fmt(T.val)}</b></div><div>إجمالي الدفعات<b class="num">${fmt(T.pay)}</b></div><div>صافي الأسبوع<b class="num">${fmt(T.net)}</b></div>
+   <div class="big">الرصيد بعد الكشف (يترحّل للأسبوع الجاي)<b class="num">${fmt(final)}</b><small>${meaning}</small></div></div>
+   <div class="sig"><span>توقيع المحاسب: ..................</span><span>توقيع ال${kind}: ..................</span></div></div>`;
 }
-
-async function loadSummary(){
-  const start=$("m_start").value; if(!start) return;
-  const {data,error}=await sb.rpc("ezz_week_summary",{p_start:start}); if(error) return alert(error.message);
-  const f=$("m_type").value, code=id=>(accounts.find(a=>a.id===id)||{}).code||"";
-  const rows=data.map(r=>({...r,code:code(r.account_id)})).filter(r=>!f||r.type===f||CAT[r.type]===f).sort((a,b)=>a.code.localeCompare(b.code));
-  const S=k=>rows.reduce((s,r)=>s+ +r[k],0);
-  $("smOut").innerHTML=`<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">ملخص الأرصدة من ${start} إلى ${addDays(start,6)}</div></div><div class="tw"><table>
-   <thead><tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>الرصيد السابق</th><th>عدد النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
-   <tbody>${rows.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${r.type}</td><td${cls(r.prev_balance)}>${fmt(r.prev_balance)}</td><td>${+r.trips}</td><td>${fmt(r.quantity)}</td><td>${fmt(r.value)}</td><td>${fmt(r.payments)}</td><td${cls(r.week_net)}>${fmt(r.week_net)}</td><td${cls(r.balance)}>${fmt(r.balance)}</td></tr>`).join("")}</tbody>
-   <tfoot><tr><td colspan="3">الإجمالي</td><td>${fmt(S("prev_balance"))}</td><td>${S("trips")}</td><td>${fmt(S("quantity"))}</td><td>${fmt(S("value"))}</td><td>${fmt(S("payments"))}</td><td>${fmt(S("week_net"))}</td><td>${fmt(S("balance"))}</td></tr></tfoot></table></div>`;
-}
-$("m_type").onchange=loadSummary;
-async function shareImage(){
-  const el=$("stSheet"); if(!el) return msg("shareMsg","اعرض الكشف الأول",false);
+$("stShare").onclick=async()=>{
+  const el=$("stSheet");if(!el)return msg("shareMsg","اعرض الكشف الأول",false);
+  if(!window.html2canvas)return msg("shareMsg","مقدرتش أجهز الصورة، اتأكد من النت",false);
   msg("shareMsg","بجهز الصورة...",true);
-  el.classList.add("capture");
-  let canvas;
-  try{ canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",windowWidth:1200}); }
-  finally{ el.classList.remove("capture"); }
+  el.classList.add("capture");let canvas;
+  try{canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",windowWidth:1200});}finally{el.classList.remove("capture");}
   const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));
-  const name="كشف حساب "+$("s_acc").selectedOptions[0].text+" "+$("s_start").value+".png";
+  const a=accById(+$("s_acc").value),name=`كشف حساب ${a.code||""} ${a.name} ${$("s_start").value}.png`;
   const file=new File([blob],name,{type:"image/png"});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file],title:name}); msg("shareMsg","تمام",true); }catch(e){ if(e.name!=="AbortError") msg("shareMsg","المشاركة مكملتش",false); }
-  }else{
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click();
-    msg("shareMsg","الصورة اتنزلت، ابعتها من الواتساب",true);
-  }
+    try{await navigator.share({files:[file],title:name});msg("shareMsg","تمام",true);}catch(e){if(e.name!=="AbortError")msg("shareMsg","المشاركة مكملتش",false);}
+  }else{const l=document.createElement("a");l.href=URL.createObjectURL(blob);l.download=name;l.click();msg("shareMsg","الصورة اتنزلت، ابعتها من الواتساب",true);}
+};
+
+/* ---------- purchases / sales ---------- */
+let regCat="مورد";
+function setupReg(cat){
+  regCat=cat;$("r_acc").dataset.cat=cat;fillSelects();
+  $("r_type").innerHTML='<option value="">الكل</option>'+CATTYPES[cat].map(t=>`<option>${t}</option>`).join("");
+  if(!$("r_from").value)$("r_from").value=monthStart();if(!$("r_to").value)$("r_to").value=today();
+  renderReg();
 }
+$("regShow").onclick=()=>renderReg();
+function renderReg(){
+  const f=$("r_from").value,t=$("r_to").value,ty=$("r_type").value,ac=+$("r_acc").value;
+  const rows=entries.filter(e=>{const a=accById(e.account_id);return TYPES[a.type]===regCat&&e.entry_date>=f&&e.entry_date<=t&&(!ty||a.type===ty)&&(!ac||e.account_id===ac);})
+    .sort((x,y)=>x.entry_date.localeCompare(y.entry_date)||x.id-y.id);
+  const trips=rows.filter(isTrip),word=regCat==="مورد"?"المشتريات":"المبيعات";
+  const by={};trips.forEach(e=>{const k=e.account_id;by[k]=by[k]||{trips:0,qty:0,val:0};by[k].trips+=e.trips;by[k].qty+=e.quantity;by[k].val+=e.value;});
+  const pays={};rows.forEach(e=>{pays[e.account_id]=(pays[e.account_id]||0)+e.payments;});
+  const ids=[...new Set(rows.map(e=>e.account_id))].sort((a,b)=>(accById(a).code||"").localeCompare(accById(b).code||""));
+  $("regOut").innerHTML=`<div class="kpis">
+    <div class="kpi hero"><div>إجمالي ${word}</div><strong class="num">${fmt(sum(trips,"value"))}</strong></div>
+    <div class="kpi"><div>عدد النقلات</div><strong class="num">${N(sum(trips,"trips"))}</strong></div>
+    <div class="kpi"><div>الكمية (متر)</div><strong class="num">${N(sum(trips,"quantity"))}</strong></div>
+    <div class="kpi"><div>${regCat==="مورد"?"المدفوع للموردين":"المحصّل من العملاء"}</div><strong class="num">${fmt(sum(rows,"payments"))}</strong></div></div>
+   <div class="card"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">${word} من ${f} إلى ${t}</div></div>
+   <h3>${word} حسب ${regCat==="مورد"?"المورد":"العميل"}</h3><div class="tw"><table><thead><tr><th>الكود</th><th>الاسم</th><th>النوع</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>الرصيد الحالي</th></tr></thead><tbody>
+   ${ids.map(id=>{const a=accById(id),g=by[id]||{trips:0,qty:0,val:0},b=balNow(id);return `<tr><td class="num">${esc(a.code)}</td><td>${esc(a.name)}</td><td>${a.type}</td><td class="num">${N(g.trips)}</td><td class="num">${N(g.qty)}</td><td class="num">${fmt(g.val)}</td><td class="num">${fmt(pays[id]||0)}</td><td${cls(b)}>${fmt(b)}</td></tr>`;}).join("")||'<tr><td colspan="8">مفيش حركات في الفترة دي</td></tr>'}
+   </tbody></table></div></div>
+   <div class="card"><h3>كل الحركات</h3><div class="tw"><table><thead><tr><th>التاريخ</th><th>الحساب</th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th></tr></thead><tbody>
+   ${rows.map(r=>`<tr><td class="num">${r.entry_date}</td><td>${esc(lbl(accById(r.account_id)))}</td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.cubic)}</td><td class="num">${r.deduction||""}</td><td class="num">${isTrip(r)?N(r.quantity):""}</td><td class="num">${N(r.price)}</td><td class="num">${isTrip(r)?fmt(r.value):""}</td><td class="num">${r.payments?fmt(r.payments):""}</td></tr>`).join("")||'<tr><td colspan="11">مفيش حركات</td></tr>'}
+   </tbody><tfoot><tr><td colspan="4">الإجمالي</td><td class="num">${N(sum(trips,"trips"))}</td><td></td><td></td><td class="num">${N(sum(trips,"quantity"))}</td><td></td><td class="num">${fmt(sum(trips,"value"))}</td><td class="num">${fmt(sum(rows,"payments"))}</td></tr></tfoot></table></div></div>`;
+}
+
+/* ---------- profit ---------- */
+$("profitShow").onclick=()=>renderProfit();
+function renderProfit(){
+  if(!$("p_from").value)$("p_from").value=monthStart();if(!$("p_to").value)$("p_to").value=today();
+  const f=$("p_from").value,t=$("p_to").value;
+  const inR=entries.filter(e=>e.entry_date>=f&&e.entry_date<=t&&isTrip(e));
+  const val=(c,ty)=>sum(inR.filter(e=>{const a=accById(e.account_id);return TYPES[a.type]===c&&(!ty||a.type===ty);}),"value");
+  const S=val("عميل"),Pd=val("مورد","سواق"),Pq=val("مورد","محجر"),P=Pd+Pq,pr=S-P;
+  const weeks=[];for(let w=satOf(f);w<=t;w=addDays(w,7))weeks.push(w);
+  const wrows=weeks.map(w=>{const e=addDays(w,6),x=inR.filter(r=>r.entry_date>=w&&r.entry_date<=e&&r.entry_date>=f&&r.entry_date<=t);
+    const s=sum(x.filter(r=>catOf(r)==="عميل"),"value"),p=sum(x.filter(r=>catOf(r)==="مورد"),"value");return {w,e,s,p,pr:s-p};});
+  $("profitOut").innerHTML=`<div class="kpis">
+    <div class="kpi hero"><div>صافي الربح</div><strong class="num">${fmt(pr)}</strong></div>
+    <div class="kpi"><div>المبيعات (العملاء)</div><strong class="num">${fmt(S)}</strong></div>
+    <div class="kpi"><div>المشتريات (الموردين)</div><strong class="num">${fmt(P)}</strong></div>
+    <div class="kpi"><div>منها نقل (سواقين)</div><strong class="num">${fmt(Pd)}</strong></div>
+    <div class="kpi"><div>منها خامات (محاجر)</div><strong class="num">${fmt(Pq)}</strong></div>
+    <div class="kpi"><div>نسبة الربح</div><strong class="num">${S?(pr/S*100).toFixed(1)+"%":"-"}</strong></div></div>
+   <div class="card"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">الأرباح من ${f} إلى ${t}</div></div>
+   <h3>الربح أسبوع بأسبوع</h3><div class="tw"><table><thead><tr><th>الأسبوع</th><th>المبيعات</th><th>المشتريات</th><th>الربح</th></tr></thead><tbody>
+   ${wrows.map(r=>`<tr><td>${r.w} إلى ${r.e}</td><td class="num">${fmt(r.s)}</td><td class="num">${fmt(r.p)}</td><td${cls(r.pr)}><b>${fmt(r.pr)}</b></td></tr>`).join("")}
+   </tbody><tfoot><tr><td>الإجمالي</td><td class="num">${fmt(S)}</td><td class="num">${fmt(P)}</td><td${cls(pr)}>${fmt(pr)}</td></tr></tfoot></table></div></div>`;
+}
+
+/* ---------- balances ---------- */
+$("balShow").onclick=()=>renderBal();$("b_type").onchange=()=>renderBal();
+function renderBal(){
+  if(!$("b_start").value)$("b_start").value=satOf();
+  const s=$("b_start").value,e=addDays(s,6),f=$("b_type").value;
+  const rows=accounts.filter(a=>!f||a.type===f||TYPES[a.type]===f).map(a=>{
+    const w=entries.filter(x=>x.account_id===a.id&&x.entry_date>=s&&x.entry_date<=e),prev=balBefore(a.id,s),wt=w.filter(isTrip);
+    return {a,prev,trips:sum(wt,"trips"),qty:sum(wt,"quantity"),val:sum(wt,"value"),pay:sum(w,"payments"),net:sum(w,"net"),bal:prev+sum(w,"net")};});
+  const S=k=>rows.reduce((t,r)=>t+r[k],0);
+  $("balOut").innerHTML=`<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">ملخص الأرصدة من ${s} إلى ${e}</div></div><div class="tw"><table>
+   <thead><tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>الرصيد السابق</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr><td class="num">${esc(r.a.code)}</td><td>${esc(r.a.name)}</td><td><span class="pill ${TYPES[r.a.type]==="مورد"?"sup":"cus"}">${r.a.type}</span></td><td${cls(r.prev)}>${fmt(r.prev)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.qty)}</td><td class="num">${fmt(r.val)}</td><td class="num">${fmt(r.pay)}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(r.bal)}><b>${fmt(r.bal)}</b></td></tr>`).join("")||'<tr><td colspan="10">لسه مفيش حسابات</td></tr>'}</tbody>
+   <tfoot><tr><td colspan="3">الإجمالي</td><td class="num">${fmt(S("prev"))}</td><td class="num">${N(S("trips"))}</td><td class="num">${N(S("qty"))}</td><td class="num">${fmt(S("val"))}</td><td class="num">${fmt(S("pay"))}</td><td class="num">${fmt(S("net"))}</td><td class="num">${fmt(S("bal"))}</td></tr></tfoot></table></div>`;
+}
+
+/* ---------- users + backup ---------- */
 async function loadMembers(){
   const {data}=await sb.from("ezz_members").select("*").order("created_at");
   $("memTable").innerHTML="<tr><th>الإيميل</th><th>الصلاحية</th></tr>"+(data||[]).map(m=>`<tr><td>${esc(m.email)}</td><td>${m.is_admin?"مدير":"مستخدم"}</td></tr>`).join("");
 }
-async function addMember(){
-  const email=$("m_email").value.trim().toLowerCase(); if(!email) return;
+$("addMem").onclick=async()=>{
+  const email=$("m_email").value.trim().toLowerCase();if(!email)return;
   const {error}=await sb.from("ezz_members").insert({email});
-  if(error) return msg("memMsg","المدير بس اللي يقدر يضيف مستخدمين",false);
-  $("m_email").value=""; msg("memMsg","تم إضافة المستخدم، يقدر يعمل حساب بالإيميل ده ويدخل",true); loadMembers();
+  if(error)return msg("memMsg","المدير بس اللي يقدر يضيف مستخدمين",false);
+  $("m_email").value="";msg("memMsg","تم إضافة المستخدم، يقدر يعمل حساب جديد بالإيميل ده",true);loadMembers();
+};
+$("backup").onclick=()=>{
+  const H=["التاريخ","الكود","اسم الحساب","النوع","السيارة","المقطورة","رقم البون","عدد النقلات","التكعيب","الخصم","الكمية","السعر","القيمة","الدفعات","الصافي","اسم المقاول","الشركة","ملاحظات"];
+  const rows=entries.slice().sort((a,b)=>a.entry_date.localeCompare(b.entry_date)).map(r=>{const a=accById(r.account_id);return [r.entry_date,a.code,a.name,a.type,r.vehicle,r.trailer,r.bon_no,r.trips,r.cubic,r.deduction,isTrip(r)?r.quantity:"",r.price,isTrip(r)?r.value:"",r.payments,r.net,r.contractor,r.company,r.notes];});
+  const acc=accounts.map(a=>[a.code,a.name,a.type,a.phone,a.opening_balance,balNow(a.id),a.notes]);
+  const tb=(h,rs)=>"<table border=1><tr>"+h.map(x=>"<th>"+esc(x)+"</th>").join("")+"</tr>"+rs.map(r=>"<tr>"+r.map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("")+"</table>";
+  const html='﻿<html><head><meta charset="utf-8"></head><body dir="rtl"><h3>الحسابات</h3>'+tb(["الكود","الاسم","النوع","التليفون","رصيد افتتاحي","الرصيد الحالي","ملاحظات"],acc)+"<h3>الحركات</h3>"+tb(H,rows)+"</body></html>";
+  const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([html],{type:"application/vnd.ms-excel"}));l.download="عز الدين نسخة احتياطية "+today()+".xls";l.click();
+};
+
+/* ---------- auth ---------- */
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();
+  const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pass").value});
+  if(error)msg("loginMsg","الإيميل أو كلمة السر غلط",false);else start();
+};
+$("signupBtn").onclick=async()=>{
+  const email=$("email").value.trim(),password=$("pass").value;
+  if(!email||password.length<6)return msg("loginMsg","اكتب الإيميل وكلمة سر 6 حروف على الأقل",false);
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error)return msg("loginMsg",error.message,false);
+  if(data.session)start();else msg("loginMsg","اتبعتلك رسالة تأكيد على الإيميل، افتحها وبعدين ادخل",true);
+};
+$("logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
+async function start(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$("gate").hidden=false;$("app").hidden=true;return;}
+  const {data:ok}=await sb.rpc("ezz_claim_first_admin");
+  if(!ok){await sb.auth.signOut();$("gate").hidden=false;$("app").hidden=true;msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة المستخدمين.",false);return;}
+  $("gate").hidden=true;$("app").hidden=false;$("who").textContent=session.user.email;
+  $("e_date").value=today();
+  await loadAll();go("home");
 }
-init();
+start();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
-</body>
-</html>
+</body></html>
