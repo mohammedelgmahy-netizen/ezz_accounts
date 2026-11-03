@@ -91,6 +91,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 #gate .inst{background:var(--accent);border:0;margin-top:12px;width:100%;justify-content:center;padding:10px}
 #instHelp{position:fixed;inset:0;background:rgb(0 0 0/.5);z-index:40;display:grid;place-items:center;padding:20px}
 #instHelp .card{max-width:380px;margin:0}
+.demobar{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:8px 12px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700}
 .pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:13px;background:var(--sunk)}
 .pill.sup{background:var(--warn-soft);color:var(--warn)}.pill.cus{background:var(--accent-soft);color:var(--accent-ink)}
 /* login */
@@ -134,6 +135,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <div id="loginMsg" class="msg" hidden></div>
       <div class="acts"><button class="btn primary" type="submit">دخول</button><button class="btn" type="button" id="signupBtn">حساب جديد</button></div>
     </form>
+    <button class="btn ghost" id="demoBtn" type="button" style="width:100%;justify-content:center;margin-top:10px">جرّب البرنامج ببيانات تجريبية</button>
     <button class="inst" data-install hidden><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>تنزيل البرنامج كتطبيق على الموبايل</span></button>
   </div>
 </div>
@@ -295,6 +297,12 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <div id="memMsg" class="msg" hidden></div>
       </div>
       <div class="card">
+        <h3>بيانات تجريبية</h3>
+        <p class="hint">بتضيف 8 حسابات (4 موردين و4 عملاء) وحركات آخر 4 أسابيع علشان تجرب الكشوف والأرباح. كل حاجة متعلّم عليها «بيانات تجريبية»، وتقدر تمسحها كلها بزرار واحد من غير ما تأثر على بياناتك الحقيقية.</p>
+        <div class="row" style="margin-top:0"><button class="btn primary" id="seedDemo">إضافة بيانات تجريبية</button><button class="btn danger" style="padding:10px 16px" id="clearDemo">مسح البيانات التجريبية</button></div>
+        <div id="seedMsg" class="msg" hidden></div>
+      </div>
+      <div class="card">
         <h3>نسخة احتياطية</h3>
         <p class="hint">بينزّل كل الحسابات والحركات في ملف Excel. يستحسن تعملها كل أسبوع.</p>
         <button class="btn ghost" id="backup">تنزيل نسخة احتياطية (Excel)</button>
@@ -311,7 +319,50 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 <script>
 const SUPABASE_URL="https://lhamdnaxioxqptkylvkg.supabase.co";
 const SUPABASE_KEY="sb_publishable_X6F5g148JSlVUz5sy0XEcw_KGNK218S";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const DEMO_MARK="بيانات تجريبية";
+/* بيانات تجريبية: 4 حسابات موردين و4 عملاء وحركات آخر 4 أسابيع */
+function demoData(){
+  const sat=(()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+1)%7));return d;})();
+  const day=n=>{const d=new Date(sat);d.setDate(d.getDate()+n);return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);};
+  const acc=[["عبد الله محمود","سواق","01001234567",5000],["حسن السيد","سواق","01112345678",0],["محجر الصفا","محجر","01223456789",-12000],["محجر النور","محجر","",0],
+    ["شركة النيل للإنشاءات","عميل شركة","0225551234",0],["شركة الأمل للمقاولات","عميل شركة","",15000],["المعلم رجب","عميل محجر","01098765432",2500],["الحاج سعيد","عميل محجر","",0]]
+    .map(([name,type,phone,ob])=>({name,type,phone:phone||null,opening_balance:ob,notes:DEMO_MARK}));
+  const ent=[];let bon=1001;
+  const T=(d,a,v,t,trips,cubic,ded,price,pay,con,com)=>ent.push({entry_date:day(d),acc:a,vehicle:v,trailer:t,bon_no:String(bon++),trips,cubic,deduction:ded,price,payments:pay||0,contractor:con,company:com,notes:DEMO_MARK});
+  const P=(d,a,pay)=>ent.push({entry_date:day(d),acc:a,vehicle:null,trailer:null,bon_no:null,trips:null,cubic:null,deduction:0,price:null,payments:pay,contractor:null,company:null,notes:"دفعة - "+DEMO_MARK});
+  for(const w of [-21,-14,-7,0]){
+    T(w+1,0,"ط ق ن 123","م 456",4,20,4,60,0,"المعلم حسن","شركة النيل");
+    T(w+2,1,"ر س م 852","م 741",3,21,3,60,0,"المعلم حسن","شركة النيل");
+    T(w+1,2,null,null,7,20,0,45,0,null,null);
+    T(w+3,3,null,null,5,18,2,40,0,null,null);
+    T(w+1,4,"ط ق ن 123","م 456",4,20,4,170,0,"المعلم حسن","شركة النيل");
+    T(w+2,5,"ر س م 852","م 741",3,21,3,165,0,"المهندس كريم","شركة الأمل");
+    T(w+3,6,"س ع د 789","م 101",5,18,2,150,0,null,null);
+    if(w<0){P(w+5,0,4000);P(w+5,2,6000);P(w+6,4,10000);P(w+6,6,6000);}
+  }
+  return {acc,ent};
+}
+function demoClient(){
+  const {acc,ent}=demoData(),codes={"عميل شركة":11000,"عميل محجر":12000,"سواق":21000,"محجر":22000},cnt={};
+  const DB={ezz_accounts:acc.map((a,i)=>({id:i+1,code:String(codes[a.type]+(cnt[a.type]=(cnt[a.type]||0)+1)),...a})),ezz_entries:[],ezz_members:[{email:"تجربة",is_admin:true,created_at:1}]};
+  let seq=1;const der=e=>{const q=(e.trips||0)*(e.cubic||0)-(e.deduction||0);e.quantity=q;e.value=q*(e.price||0);e.net=e.value-(e.payments||0);return e;};
+  ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,...e})));let aseq=100;
+  class Q{constructor(t){this.t=t;this.f=[];this.op="select";}
+    select(){return this} order(){return this} range(a,b){this.r=[a,b];return this} eq(k,v){this.f.push(r=>r[k]==v);return this}
+    insert(row){this.op="insert";this.row=row;return this} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
+    run(){const T=DB[this.t];
+      if(this.op==="insert"){if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
+        const r={id:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
+        if(this.t==="ezz_accounts")r.code=String(codes[r.type]+(cnt[r.type]=(cnt[r.type]||0)+1));
+        if(this.t==="ezz_entries")der(r);T.push(r);return {data:[r],error:null};}
+      if(this.op==="update"){T.filter(r=>this.f.every(f=>f(r))).forEach(r=>{Object.assign(r,this.p);if(this.t==="ezz_entries")der(r);});return {error:null};}
+      if(this.op==="delete"){DB[this.t]=T.filter(r=>!this.f.every(f=>f(r)));return {error:null};}
+      let d=T.filter(r=>this.f.every(f=>f(r)));if(this.r)d=d.slice(this.r[0],this.r[1]+1);return {data:JSON.parse(JSON.stringify(d)),error:null};}
+    then(a,b){return Promise.resolve(this.run()).then(a,b)}}
+  return {from:t=>new Q(t),rpc:async()=>({data:true}),auth:{getSession:async()=>({data:{session:{user:{email:"وضع التجربة"}}}}),signOut:async()=>({})}};
+}
+const DEMO=location.hash==="#demo";
+const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 const fmt=n=>(n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const N=v=>v==null||v===""?"":Number(v).toLocaleString("en-US",{maximumFractionDigits:2});
@@ -605,6 +656,25 @@ $("addMem").onclick=async()=>{
   if(error)return msg("memMsg","المدير بس اللي يقدر يضيف مستخدمين",false);
   $("m_email").value="";msg("memMsg","تم إضافة المستخدم، يقدر يعمل حساب جديد بالإيميل ده",true);loadMembers();
 };
+$("seedDemo").onclick=async()=>{
+  if(accounts.some(a=>a.notes===DEMO_MARK))return msg("seedMsg","البيانات التجريبية موجودة بالفعل",false);
+  const b=$("seedDemo");b.disabled=true;msg("seedMsg","بضيف البيانات...",true);
+  const {acc,ent}=demoData();
+  const {data:ins,error}=await sb.from("ezz_accounts").insert(acc).select();
+  if(error){b.disabled=false;return msg("seedMsg","مقدرتش أضيف الحسابات: "+(error.code==="23505"?"فيه حساب بنفس الاسم موجود":error.message),false);}
+  const idOf=i=>ins.find(x=>x.name===acc[i].name).id;
+  const {error:e2}=await sb.from("ezz_entries").insert(ent.map(({acc:ai,...e})=>({...e,account_id:idOf(ai)})));
+  b.disabled=false;if(e2)return msg("seedMsg","الحسابات اتضافت بس الحركات لأ: "+e2.message,false);
+  await loadAll();msg("seedMsg","تمام، اتضاف "+acc.length+" حسابات و"+ent.length+" حركة. افتح الرئيسية أو كشف حساب وجرب.",true);
+};
+$("clearDemo").onclick=async()=>{
+  const ids=accounts.filter(a=>a.notes===DEMO_MARK).map(a=>a.id);
+  if(!ids.length)return msg("seedMsg","مفيش بيانات تجريبية",false);
+  if(!confirm("هتمسح كل الحسابات والحركات التجريبية. متأكد؟"))return;
+  for(const id of ids){const {error}=await sb.from("ezz_entries").delete().eq("account_id",id);if(error)return msg("seedMsg",error.message,false);}
+  for(const id of ids){const {error}=await sb.from("ezz_accounts").delete().eq("id",id);if(error)return msg("seedMsg",error.message,false);}
+  await loadAll();msg("seedMsg","اتمسحت البيانات التجريبية",true);
+};
 $("backup").onclick=()=>{
   const H=["التاريخ","الكود","اسم الحساب","النوع","السيارة","المقطورة","رقم البون","عدد النقلات","التكعيب","الخصم","الكمية","السعر","القيمة","الدفعات","الصافي","اسم المقاول","الشركة","ملاحظات"];
   const rows=entries.slice().sort((a,b)=>a.entry_date.localeCompare(b.entry_date)).map(r=>{const a=accById(r.account_id);return [r.entry_date,a.code,a.name,a.type,r.vehicle,r.trailer,r.bon_no,r.trips,r.cubic,r.deduction,isTrip(r)?r.quantity:"",r.price,isTrip(r)?r.value:"",r.payments,r.net,r.contractor,r.company,r.notes];});
@@ -627,7 +697,10 @@ $("signupBtn").onclick=async()=>{
   if(error)return msg("loginMsg",error.message,false);
   if(data.session)start();else msg("loginMsg","اتبعتلك رسالة تأكيد على الإيميل، افتحها وبعدين ادخل",true);
 };
-$("logout").onclick=async()=>{await sb.auth.signOut();location.reload();};
+$("logout").onclick=async()=>{await sb.auth.signOut();if(DEMO){location.hash="";}location.reload();};
+$("demoBtn").onclick=()=>{location.hash="demo";location.reload();};
+if(DEMO){const b=document.createElement("div");b.className="demobar";b.innerHTML='وضع التجربة: البيانات دي تجريبية ومش بتتحفظ. <button class="btn sm" id="exitDemo">خروج من التجربة</button>';
+  document.querySelector(".main").insertBefore(b,document.querySelector(".main>header").nextSibling);$("exitDemo").onclick=()=>{location.hash="";location.reload();};}
 async function start(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$("gate").hidden=false;$("app").hidden=true;return;}
