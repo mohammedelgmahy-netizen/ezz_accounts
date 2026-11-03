@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كشوف الحساب الأسبوعية</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#1d2733;--muted:#66717f;--line:#d6dce4;--pri:#1f4e78;--pri2:#e8f1fa;--inp:#fff9db;--red:#c00000;--green:#1a7f37}
+@media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b2129;--ink:#e6ebf1;--muted:#9aa6b3;--line:#2e3742;--pri:#5b9bd5;--pri2:#1f2a36;--inp:#2a2a1e;--red:#ff6b6b;--green:#4cc36b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif;font-size:15px}
+header{background:var(--pri);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+nav button{background:none;border:1px solid var(--line);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{padding:16px;max-width:1300px;margin:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--inp);color:var(--ink);width:100%}
+input[readonly]{background:var(--pri2)}
+.btn{background:var(--pri);color:#fff;border:0;padding:9px 18px;border-radius:8px;cursor:pointer;font:inherit}
+.btn.sec{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+.btn.del{background:transparent;color:var(--red);border:1px solid var(--red);padding:4px 10px}
+.row{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-top:10px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px;text-align:center;white-space:nowrap}
+th{background:var(--pri);color:#fff}
+tfoot td{background:var(--pri2);font-weight:bold}
+.neg{color:var(--red)}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:10px 0}
+.kv div{background:var(--pri2);border-radius:8px;padding:8px 10px}
+.kv b{display:block;font-size:17px;margin-top:2px}
+.big b{color:var(--red)}
+.msg{padding:8px 12px;border-radius:8px;margin:8px 0;display:none}
+.msg.ok{display:block;background:#e3f6e8;color:#14532d}.msg.err{display:block;background:#fde8e8;color:#7f1d1d}
+#login{max-width:380px;margin:60px auto}
+.hide{display:none!important}
+.print-head{display:none}
+@media print{
+  header,nav,.noprint,.btn{display:none!important}
+  body{background:#fff;color:#000;font-size:12px}
+  main{padding:0;max-width:none}
+  .card{border:0;padding:0}
+  .print-head{display:block;text-align:center;font-size:18px;font-weight:bold;margin-bottom:6px}
+  th{background:#1f4e78!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 landscape;margin:8mm}
+  .sig{display:flex!important}
+}
+.sig{display:none;justify-content:space-between;margin-top:30px}
+</style>
+</head>
+<body>
+<header><h1>عز الدين للمقاولات العامة والتوريدات - كشوف الحساب</h1><span id="who" class="noprint"></span></header>
+
+<section id="login" class="card hide">
+  <h2>تسجيل الدخول</h2>
+  <label>الإيميل<input id="email" type="email" autocomplete="username"></label><br>
+  <label>كلمة السر<input id="pass" type="password" autocomplete="current-password"></label><br>
+  <button class="btn" onclick="login()">دخول</button> <button class="btn sec" onclick="signup()">إنشاء حساب جديد</button>
+  <div id="loginMsg" class="msg"></div>
+</section>
+
+<div id="app" class="hide">
+<nav>
+  <button data-t="entry" class="on">تسجيل حركة</button>
+  <button data-t="statement">كشف حساب</button>
+  <button data-t="summary">ملخص الأرصدة</button>
+  <button data-t="accounts">الحسابات</button>
+  <button onclick="logout()" style="margin-inline-start:auto">خروج</button>
+</nav>
+<main>
+
+<!-- تسجيل حركة -->
+<section id="t-entry">
+  <div class="card">
+    <h3 style="margin-top:0">نقلة / دفعة جديدة</h3>
+    <div class="grid">
+      <label>التاريخ<input id="e_date" type="date"></label>
+      <label>اسم الحساب<select id="e_acc" class="accSel"></select></label>
+      <label>السيارة<input id="e_vehicle"></label>
+      <label>المقطورة<input id="e_trailer"></label>
+      <label>رقم البون<input id="e_bon"></label>
+      <label>عدد النقلات<input id="e_trips" type="number" step="any" inputmode="decimal"></label>
+      <label>التكعيب<input id="e_cubic" type="number" step="any" inputmode="decimal"></label>
+      <label>الخصم<input id="e_ded" type="number" step="any" inputmode="decimal"></label>
+      <label>الكمية<input id="e_qty" readonly></label>
+      <label>السعر<input id="e_price" type="number" step="any" inputmode="decimal"></label>
+      <label>القيمة<input id="e_value" readonly></label>
+      <label>الدفعات<input id="e_pay" type="number" step="any" inputmode="decimal"></label>
+      <label>الصافي<input id="e_net" readonly></label>
+      <label>اسم المقاول<input id="e_contractor" list="contractors"></label>
+      <label>الشركة<input id="e_company" list="companies"></label>
+      <label>ملاحظات<input id="e_notes"></label>
+    </div>
+    <datalist id="contractors"></datalist><datalist id="companies"></datalist>
+    <div class="row"><button class="btn" onclick="saveEntry()">حفظ</button></div>
+    <div id="entryMsg" class="msg"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">آخر الحركات</h3>
+    <div class="tw"><table id="recent"></table></div>
+  </div>
+</section>
+
+<!-- كشف حساب -->
+<section id="t-statement" class="hide">
+  <div class="card noprint">
+    <div class="row" style="margin-top:0">
+      <label style="min-width:220px">اسم الحساب<select id="s_acc" class="accSel"></select></label>
+      <label>من تاريخ (أول الأسبوع)<input id="s_start" type="date"></label>
+      <label>تاريخ المحاسبة<input id="s_calc" type="date"></label>
+      <button class="btn" onclick="loadStatement()">عرض الكشف</button>
+      <button class="btn sec" onclick="shiftWeek(-7)">الأسبوع اللي فات</button>
+      <button class="btn sec" onclick="shiftWeek(7)">الأسبوع الجاي</button>
+      <button class="btn sec" onclick="window.print()">طباعة</button>
+    </div>
+  </div>
+  <div class="card" id="stOut"></div>
+</section>
+
+<!-- ملخص -->
+<section id="t-summary" class="hide">
+  <div class="card noprint">
+    <div class="row" style="margin-top:0">
+      <label>من تاريخ (أول الأسبوع)<input id="m_start" type="date"></label>
+      <label>النوع<select id="m_type"><option value="">الكل</option><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
+      <button class="btn" onclick="loadSummary()">عرض</button>
+      <button class="btn sec" onclick="window.print()">طباعة</button>
+    </div>
+  </div>
+  <div class="card" id="smOut"></div>
+</section>
+
+<!-- الحسابات -->
+<section id="t-accounts" class="hide">
+  <div class="card">
+    <h3 style="margin-top:0">حساب جديد</h3>
+    <div class="grid">
+      <label>اسم الحساب<input id="a_name"></label>
+      <label>النوع<select id="a_type"><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
+      <label>التليفون<input id="a_phone" inputmode="tel"></label>
+      <label>رصيد افتتاحي<input id="a_open" type="number" step="any" value="0"></label>
+      <label>ملاحظات<input id="a_notes"></label>
+    </div>
+    <div class="row"><button class="btn" onclick="saveAccount()">إضافة</button></div>
+    <div id="accMsg" class="msg"></div>
+  </div>
+  <div class="card"><div class="tw"><table id="accTable"></table></div></div>
+  <div class="card">
+    <h3 style="margin-top:0">المستخدمين المسموح لهم يدخلوا البرنامج</h3>
+    <div class="tw"><table id="memTable"></table></div>
+    <div class="row"><label style="min-width:240px">إيميل مستخدم جديد<input id="m_email" type="email"></label>
+      <button class="btn" onclick="addMember()">إضافة مستخدم</button></div>
+    <div id="memMsg" class="msg"></div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+// ====== الإعدادات: رابط ومفتاح Supabase ======
+const SUPABASE_URL = "https://lhamdnaxioxqptkylvkg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_X6F5g148JSlVUz5sy0XEcw_KGNK218S";
+// ============================================
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const fmt = n => (n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const cls = n => Number(n)<0?' class="neg"':'';
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const iso = d => new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const addDays = (s,n) => { const d=new Date(s+"T00:00:00"); d.setDate(d.getDate()+n); return iso(d); };
+function lastSaturday(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+1)%7)); return iso(d); }
+function msg(id,t,ok){ const m=$(id); m.textContent=t; m.className="msg "+(ok?"ok":"err"); if(ok) setTimeout(()=>m.className="msg",2500); }
+let accounts=[];
+
+document.querySelectorAll("nav button[data-t]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button[data-t]").forEach(x=>x.classList.toggle("on",x===b));
+  ["entry","statement","summary","accounts"].forEach(t=>$("t-"+t).classList.toggle("hide",t!==b.dataset.t));
+  if(b.dataset.t==="summary") loadSummary();
+});
+
+async function login(){
+  const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pass").value});
+  if(error) msg("loginMsg","الإيميل أو كلمة السر غلط",false); else init();
+}
+async function signup(){
+  const email=$("email").value.trim(), password=$("pass").value;
+  if(!email||password.length<6) return msg("loginMsg","اكتب الإيميل وكلمة سر 6 حروف على الأقل",false);
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error) return msg("loginMsg",error.message,false);
+  if(data.session) init(); else msg("loginMsg","اتبعتلك رسالة تأكيد على الإيميل، افتحها وبعدين ادخل",true);
+}
+async function logout(){ await sb.auth.signOut(); location.reload(); }
+
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  $("login").classList.toggle("hide",!!session); $("app").classList.toggle("hide",!session);
+  if(!session) return;
+  $("who").textContent=session.user.email;
+  const {data:ok}=await sb.rpc("ezz_claim_first_admin");
+  if(!ok){ $("app").classList.add("hide"); $("login").classList.remove("hide"); msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة الحسابات.",false); return; }
+  loadMembers();
+  const today=iso(new Date());
+  $("e_date").value=today; $("s_start").value=lastSaturday(); $("m_start").value=lastSaturday(); $("s_calc").value=today;
+  await loadAccounts(); await loadRecent();
+}
+
+async function loadAccounts(){
+  const {data,error}=await sb.from("ezz_accounts").select("*").order("type").order("name");
+  if(error){ alert(error.message); return; }
+  accounts=data;
+  const opts='<option value="">-- اختار --</option>'+["سواق","محجر","عميل محجر","عميل شركة"].map(t=>{
+    const g=data.filter(a=>a.type===t); return g.length?`<optgroup label="${t}">`+g.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("")+"</optgroup>":"";
+  }).join("");
+  document.querySelectorAll(".accSel").forEach(s=>{const v=s.value; s.innerHTML=opts; s.value=v;});
+  $("accTable").innerHTML="<tr><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>ملاحظات</th><th></th></tr>"+
+    data.map(a=>`<tr><td>${esc(a.name)}</td><td>${a.type}</td><td>${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td>${esc(a.notes)}</td>
+    <td><button class="btn sec" onclick="editOpening(${a.id})">تعديل الرصيد الافتتاحي</button></td></tr>`).join("");
+}
+async function saveAccount(){
+  const name=$("a_name").value.trim(); if(!name) return msg("accMsg","اكتب اسم الحساب",false);
+  const {error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null});
+  if(error) return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
+  ["a_name","a_phone","a_notes"].forEach(i=>$(i).value=""); $("a_open").value=0;
+  msg("accMsg","تم إضافة الحساب",true); loadAccounts();
+}
+async function editOpening(id){
+  const a=accounts.find(x=>x.id===id); const v=prompt("الرصيد الافتتاحي لـ "+a.name, a.opening_balance); if(v===null) return;
+  const {error}=await sb.from("ezz_accounts").update({opening_balance:+v||0}).eq("id",id);
+  if(error) alert(error.message); else loadAccounts();
+}
+
+const num = id => $(id).value===""?null:+$(id).value;
+function calcEntry(){
+  const t=num("e_trips"),c=num("e_cubic"),d=num("e_ded")||0,p=num("e_price")||0,pay=num("e_pay")||0;
+  const q=(t||0)*(c||0)-d, v=q*p;
+  $("e_qty").value=t!=null?fmt(q):""; $("e_value").value=t!=null?fmt(v):""; $("e_net").value=fmt(v-pay);
+}
+["e_trips","e_cubic","e_ded","e_price","e_pay"].forEach(i=>$(i).addEventListener("input",calcEntry));
+$("e_acc").addEventListener("change",async()=>{ // اقتراح آخر بيانات للحساب
+  const id=$("e_acc").value; if(!id) return;
+  const {data}=await sb.from("ezz_entries").select("vehicle,trailer,cubic,price,contractor,company").eq("account_id",id).not("trips","is",null).order("entry_date",{ascending:false}).order("id",{ascending:false}).limit(1);
+  if(data&&data[0]){ const r=data[0];
+    [["e_vehicle","vehicle"],["e_trailer","trailer"],["e_cubic","cubic"],["e_price","price"],["e_contractor","contractor"],["e_company","company"]].forEach(([i,k])=>{ if(!$(i).value&&r[k]!=null) $(i).value=r[k]; });
+    calcEntry(); }
+});
+async function saveEntry(){
+  if(!$("e_date").value||!$("e_acc").value) return msg("entryMsg","اختار التاريخ واسم الحساب",false);
+  if(num("e_trips")==null && !num("e_pay")) return msg("entryMsg","اكتب عدد النقلات أو مبلغ الدفعة",false);
+  const row={entry_date:$("e_date").value,account_id:+$("e_acc").value,vehicle:$("e_vehicle").value||null,trailer:$("e_trailer").value||null,
+    bon_no:$("e_bon").value||null,trips:num("e_trips"),cubic:num("e_cubic"),deduction:num("e_ded")||0,price:num("e_price"),
+    payments:num("e_pay")||0,contractor:$("e_contractor").value||null,company:$("e_company").value||null,notes:$("e_notes").value||null};
+  const {error}=await sb.from("ezz_entries").insert(row);
+  if(error) return msg("entryMsg",error.message,false);
+  ["e_bon","e_trips","e_ded","e_pay","e_notes","e_qty","e_value","e_net"].forEach(i=>$(i).value="");
+  msg("entryMsg","تم الحفظ",true); loadRecent();
+}
+async function loadRecent(){
+  const {data,error}=await sb.from("ezz_entries").select("*,ezz_accounts(name)").order("created_at",{ascending:false}).limit(30);
+  if(error) return;
+  const cs=new Set(),co=new Set();
+  data.forEach(r=>{ if(r.contractor) cs.add(r.contractor); if(r.company) co.add(r.company); });
+  $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join(""); $("companies").innerHTML=[...co].map(x=>`<option value="${esc(x)}">`).join("");
+  $("recent").innerHTML="<tr><th>التاريخ</th><th>الحساب</th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th><th></th></tr>"+
+    data.map(r=>`<tr><td>${r.entry_date}</td><td>${esc(r.ezz_accounts?.name)}</td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
+    <td>${r.trips!=null?fmt(r.quantity):""}</td><td>${r.price??""}</td><td>${r.trips!=null?fmt(r.value):""}</td><td>${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td>
+    <td><button class="btn del" onclick="delEntry(${r.id})">مسح</button></td></tr>`).join("");
+}
+async function delEntry(id){
+  if(!confirm("متأكد إنك عايز تمسح الحركة دي؟ ده هيغيّر الأرصدة.")) return;
+  const {error}=await sb.from("ezz_entries").delete().eq("id",id); if(error) alert(error.message); else loadRecent();
+}
+
+function shiftWeek(n){ $("s_start").value=addDays($("s_start").value,n); loadStatement(); }
+async function loadStatement(){
+  const id=+$("s_acc").value, start=$("s_start").value; if(!id||!start) return alert("اختار الحساب وتاريخ أول الأسبوع");
+  const end=addDays(start,6), a=accounts.find(x=>x.id===id);
+  const [{data:prev,error:e1},{data:rows,error:e2}]=await Promise.all([
+    sb.rpc("ezz_balance_before",{p_account:id,p_date:start}),
+    sb.from("ezz_entries").select("*").eq("account_id",id).gte("entry_date",start).lte("entry_date",end).order("entry_date").order("id")]);
+  if(e1||e2) return alert((e1||e2).message);
+  let bal=+prev, T={trips:0,qty:0,val:0,pay:0,net:0};
+  const body=rows.map((r,i)=>{ bal+=+r.net; const tr=r.trips!=null;
+    if(tr){T.trips+=+r.trips;T.qty+=+r.quantity;T.val+=+r.value;} T.pay+=+r.payments; T.net+=+r.net;
+    return `<tr><td>${i+1}</td><td>${r.entry_date}</td><td>${esc(r.vehicle)}</td><td>${esc(r.trailer)}</td><td>${esc(r.bon_no)}</td><td>${r.trips??""}</td><td>${r.cubic??""}</td><td>${r.deduction||""}</td>
+    <td>${tr?fmt(r.quantity):""}</td><td>${r.price??""}</td><td>${tr?fmt(r.value):""}</td><td>${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(bal)}>${fmt(bal)}</td><td>${esc(r.contractor)}</td><td>${esc(r.company)}</td></tr>`;}).join("");
+  $("stOut").innerHTML=`<div class="print-head">عز الدين للمقاولات العامة والتوريدات - كشف حساب أسبوعي</div>
+   <div class="kv"><div>اسم الحساب<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b>${$("s_calc").value}</b></div></div>
+   <div class="kv"><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
+   <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>السيارة</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
+   <tbody>${body||'<tr><td colspan="16">مفيش حركات في الأسبوع ده</td></tr>'}</tbody>
+   <tfoot><tr><td colspan="5">الإجمالي</td><td>${T.trips}</td><td></td><td></td><td>${fmt(T.qty)}</td><td></td><td>${fmt(T.val)}</td><td>${fmt(T.pay)}</td><td${cls(T.net)}>${fmt(T.net)}</td><td></td><td></td><td></td></tr></tfoot></table></div>
+   <div class="kv"><div>الرصيد السابق<b>${fmt(prev)}</b></div><div>إجمالي القيمة<b>${fmt(T.val)}</b></div><div>إجمالي الدفعات<b>${fmt(T.pay)}</b></div><div>صافي الأسبوع<b>${fmt(T.net)}</b></div>
+   <div class="big">الرصيد بعد الكشف (يترحّل للأسبوع الجاي)<b>${fmt(+prev+T.net)}</b></div></div>
+   <div class="sig"><span>توقيع المحاسب: ..................</span><span>توقيع المقاول / العميل: ..................</span></div>`;
+}
+
+async function loadSummary(){
+  const start=$("m_start").value; if(!start) return;
+  const {data,error}=await sb.rpc("ezz_week_summary",{p_start:start}); if(error) return alert(error.message);
+  const rows=data.filter(r=>!$("m_type").value||r.type===$("m_type").value);
+  const S=k=>rows.reduce((s,r)=>s+ +r[k],0);
+  $("smOut").innerHTML=`<div class="print-head">ملخص الأرصدة من ${start} إلى ${addDays(start,6)}</div><div class="tw"><table>
+   <thead><tr><th>اسم الحساب</th><th>النوع</th><th>الرصيد السابق</th><th>عدد النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.type}</td><td${cls(r.prev_balance)}>${fmt(r.prev_balance)}</td><td>${+r.trips}</td><td>${fmt(r.quantity)}</td><td>${fmt(r.value)}</td><td>${fmt(r.payments)}</td><td${cls(r.week_net)}>${fmt(r.week_net)}</td><td${cls(r.balance)}>${fmt(r.balance)}</td></tr>`).join("")}</tbody>
+   <tfoot><tr><td colspan="2">الإجمالي</td><td>${fmt(S("prev_balance"))}</td><td>${S("trips")}</td><td>${fmt(S("quantity"))}</td><td>${fmt(S("value"))}</td><td>${fmt(S("payments"))}</td><td>${fmt(S("week_net"))}</td><td>${fmt(S("balance"))}</td></tr></tfoot></table></div>`;
+}
+$("m_type").onchange=loadSummary;
+async function loadMembers(){
+  const {data}=await sb.from("ezz_members").select("*").order("created_at");
+  $("memTable").innerHTML="<tr><th>الإيميل</th><th>الصلاحية</th></tr>"+(data||[]).map(m=>`<tr><td>${esc(m.email)}</td><td>${m.is_admin?"مدير":"مستخدم"}</td></tr>`).join("");
+}
+async function addMember(){
+  const email=$("m_email").value.trim().toLowerCase(); if(!email) return;
+  const {error}=await sb.from("ezz_members").insert({email});
+  if(error) return msg("memMsg","المدير بس اللي يقدر يضيف مستخدمين",false);
+  $("m_email").value=""; msg("memMsg","تم إضافة المستخدم، يقدر يعمل حساب بالإيميل ده ويدخل",true); loadMembers();
+}
+init();
+</script>
+</body>
+</html>
