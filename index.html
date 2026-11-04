@@ -74,6 +74,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{border:1px solid var(--line);padding:7px 8px;text-align:center;white-space:nowrap}
 th{background:var(--accent);color:#fff;font-weight:700}
 tfoot td{background:var(--accent-soft);font-weight:800}
+tr.tot td{background:var(--sunk)}table.inc td:first-child{text-align:right}
 tbody tr:nth-child(even) td{background:#faf8f2}
 .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
@@ -164,6 +165,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <button data-tab="purch"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6M9 20a1 1 0 1 0 0-.01M18 20a1 1 0 1 0 0-.01"/></svg><span>المشتريات</span></button>
       <button data-tab="sales"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>المبيعات</span></button>
       <button data-tab="profit"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg><span>الأرباح</span></button>
+      <button data-tab="inc"><svg viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6M9 16h3"/></svg><span>قائمة الدخل</span></button>
       <button data-tab="bal"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></svg><span>ملخص الأرصدة</span></button>
       <div class="grp">أدوات</div>
       <button data-tab="users"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>الإعدادات والنسخ</span></button>
@@ -294,6 +296,32 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     </section>
 
     <!-- الأرباح -->
+    <section id="v-inc" hidden>
+      <div class="card noprint">
+        <div class="row" style="margin-top:0">
+          <label>من<input id="i_from" type="date"></label>
+          <label>إلى<input id="i_to" type="date"></label>
+          <button class="btn primary" id="incShow">عرض</button>
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" onclick="shareSection('incOut','قائمة الدخل')"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> واتساب</button>
+        </div>
+      </div>
+      <div id="incOut"></div>
+      <div class="card noprint">
+        <h3>تسجيل مصروف</h3>
+        <div class="row" style="margin-top:0">
+          <label>التاريخ<input id="x_date" type="date"></label>
+          <label>البند<input id="x_cat" list="x_cats" placeholder="سولار، مرتبات..."><datalist id="x_cats"></datalist></label>
+          <label>المبلغ<input id="x_amt" type="number" inputmode="decimal" step="any"></label>
+          <label style="flex:1;min-width:160px">ملاحظات<input id="x_notes"></label>
+          <button class="btn primary" id="x_save">حفظ المصروف</button>
+        </div>
+        <div id="xMsg" class="msg" hidden></div>
+        <h3 style="margin-top:14px">المصروفات في الفترة دي</h3>
+        <div class="tw"><table id="xTable"></table></div>
+      </div>
+    </section>
+
     <section id="v-profit" hidden>
       <div class="card noprint">
         <div class="row" style="margin-top:0">
@@ -422,9 +450,9 @@ const DEMO=location.hash==="#demo";
 const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"ezz_auth"}});
 const $=id=>document.getElementById(id);
 /* ---------- الشركات: كل شركة بحساباتها لوحدها ---------- */
-let ALLACC=[],CID=0,companies=[],isOwner=false,myEmail="";
+let ALLACC=[],expenses=[],expAcc=null,CID=0,companies=[],isOwner=false,myEmail="";
 try{CID=+localStorage.getItem("ezz_cid")||0;}catch(e){}
-const CO_ROW="⟦company⟧",coTag=id=>id?"⟦co:"+id+"⟧":"";
+const EXP_ROW="⟦expenses⟧",CO_ROW="⟦company⟧",coTag=id=>id?"⟦co:"+id+"⟧":"";
 const tagNotes=r=>{if(!CID)return r;const f=x=>({...x,notes:coTag(CID)+(x.notes||"")});return Array.isArray(r)?r.map(f):f(r);};
 const parseCo=a=>{const m=/^⟦co:(\d+)⟧/.exec(a.notes||"");return {...a,_co:m?+m[1]:0,notes:m?(a.notes.slice(m[0].length)||null):a.notes};};
 function T(t){const q=sb.from(t);if(t!=="ezz_accounts"&&t!=="ezz_vehicles")return q;
@@ -463,12 +491,14 @@ async function loadAll(){
   const allAcc=acc.map(parseCo);ALLACC=allAcc;
   companies=[{id:0,name:DEF_CO},...allAcc.filter(x=>x.notes===CO_ROW).sort((x,y)=>x.id-y.id).map(x=>({id:x.id,name:x.name,phone:x.phone}))];
   if(!companies.some(c=>c.id===CID))CID=0;
-  accounts=allAcc.filter(x=>x.notes!==CO_ROW&&x._co===CID).sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
+  expAcc=allAcc.find(x=>x.notes===EXP_ROW&&x._co===CID)||null;
+  accounts=allAcc.filter(x=>x.notes!==CO_ROW&&x.notes!==EXP_ROW&&x._co===CID).sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
   let all=[],from=0;
   for(;;){const {data,error}=await T("ezz_entries").select("*").order("id").range(from,from+999);
     if(error){alert("مشكلة في تحميل الحركات: "+error.message);break;}
     all=all.concat(data); if(data.length<1000)break; from+=1000;}
   const accIds=new Set(accounts.map(x=>x.id));
+  expenses=expAcc?all.filter(e=>e.account_id===expAcc.id).map(e=>({...e,payments:+e.payments||0})).sort((a,b)=>b.entry_date.localeCompare(a.entry_date)||b.id-a.id):[];
   entries=all.filter(e=>accIds.has(e.account_id)).map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
   const {data:vs,error:e3}=await T("ezz_vehicles").select("*");
   vehReady=!e3; vehicles=(vs||[]).map(parseCo).filter(v=>v._co===CID).map(v=>({...v,cube:v.cube==null?null:+v.cube})).sort((a,b)=>a.id-b.id);
@@ -496,8 +526,8 @@ function fillDatalists(){
 }
 
 /* ---------- navigation ---------- */
-const TITLES={veh:"الجرارات والتكعيب",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
-const VIEW={veh:"veh",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",bal:"bal",users:"users"};
+const TITLES={veh:"الجرارات والتكعيب",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",inc:"قائمة الدخل",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
+const VIEW={veh:"veh",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",inc:"inc",bal:"bal",users:"users"};
 let tab="home";
 function side(o){document.body.classList.toggle("side-open",o);$("scrim").hidden=!o;}
 $("menuBtn").onclick=()=>side(true);$("scrim").onclick=()=>side(false);
@@ -513,6 +543,7 @@ function go(t,opts={}){
   if(t==="st")setupSt(opts.cat||stCat,opts.acc);
   if(t==="purch"||t==="sales")setupReg(t==="purch"?"مورد":"عميل");
   if(t==="profit")renderProfit();
+  if(t==="inc")renderInc();
   if(t==="bal")renderBal();
   if(t==="users"){loadMembers();renderCompanies();}
   if(t==="veh")setupVeh();
@@ -842,6 +873,56 @@ function renderProfit(){
    </tbody><tfoot><tr><td>الإجمالي</td><td class="num">${fmt(S)}</td><td class="num">${fmt(P)}</td><td${cls(pr)}>${fmt(pr)}</td></tr></tfoot></table></div></div>`;
 }
 
+/* ---------- قائمة الدخل ---------- */
+const XCATS=["سولار","مرتبات","صيانة وقطع غيار","إيجار","كهربا ومياه","تليفونات","كارتة ورسوم","نثريات"];
+function renderInc(){
+  if(!$("i_from").value)$("i_from").value=monthStart();if(!$("i_to").value)$("i_to").value=today();if(!$("x_date").value)$("x_date").value=today();
+  const f=$("i_from").value,t=$("i_to").value;
+  const inR=entries.filter(e=>e.entry_date>=f&&e.entry_date<=t&&isTrip(e));
+  const v=ty=>sum(inR.filter(e=>accById(e.account_id).type===ty),"value");
+  const Sc=v("عميل شركة"),Sq=v("عميل محجر"),S=Sc+Sq,Cd=v("سواق"),Cq=v("محجر"),C=Cd+Cq,G=S-C;
+  const xs=expenses.filter(e=>e.entry_date>=f&&e.entry_date<=t),byCat={};
+  xs.forEach(e=>{const k=e.contractor||"أخرى";byCat[k]=(byCat[k]||0)+e.payments;});
+  const X=sum(xs,"payments"),NP=G-X,pct=x=>S?(x/S*100).toFixed(1)+"%":"-";
+  const line=(l,n,o={})=>`<tr${o.tot?' class="tot"':""}><td${o.sub?' style="padding-right:28px"':""}>${o.b?"<b>"+l+"</b>":l}</td><td class="num">${o.b?"<b>"+fmt(n)+"</b>":fmt(n)}</td><td class="num">${o.p?pct(n):""}</td></tr>`;
+  $("incOut").innerHTML=`<div class="kpis">
+    <div class="kpi hero"><div>صافي الربح</div><strong class="num">${fmt(NP)}</strong></div>
+    <div class="kpi"><div>الإيرادات</div><strong class="num">${fmt(S)}</strong></div>
+    <div class="kpi"><div>مجمل الربح</div><strong class="num">${fmt(G)}</strong></div>
+    <div class="kpi"><div>المصروفات</div><strong class="num">${fmt(X)}</strong></div></div>
+   <div class="card"><div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">قائمة الدخل من ${f} إلى ${t}</div></div>
+   <div class="tw"><table class="inc"><thead><tr><th>البيان</th><th>المبلغ</th><th>من الإيرادات</th></tr></thead><tbody>
+   ${line("الإيرادات (مبيعات للعملاء)","",{b:1}).replace("<b></b>","")}
+   ${line("عملاء شركات",Sc,{sub:1})}${line("عملاء محاجر",Sq,{sub:1})}
+   ${line("إجمالي الإيرادات",S,{b:1,tot:1,p:1})}
+   ${line("تكلفة النقل والخامات (الموردين)","",{b:1}).replace("<b></b>","")}
+   ${line("نقل (سواقين)",Cd,{sub:1,p:1})}${line("خامات (محاجر)",Cq,{sub:1,p:1})}
+   ${line("إجمالي التكلفة",C,{b:1,tot:1,p:1})}
+   ${line("مجمل الربح",G,{b:1,tot:1,p:1})}
+   ${line("المصروفات","",{b:1}).replace("<b></b>","")}
+   ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,n])=>line(esc(k),n,{sub:1,p:1})).join("")||'<tr><td style="padding-right:28px" colspan="3">مفيش مصروفات متسجلة في الفترة دي</td></tr>'}
+   ${line("إجمالي المصروفات",X,{b:1,tot:1,p:1})}
+   </tbody><tfoot><tr><td>صافي الربح</td><td${cls(NP)}>${fmt(NP)}</td><td class="num">${pct(NP)}</td></tr></tfoot></table></div></div>`;
+  $("x_cats").innerHTML=[...new Set([...XCATS,...expenses.map(e=>e.contractor).filter(Boolean)])].map(c=>`<option value="${esc(c)}">`).join("");
+  $("xTable").innerHTML="<tr><th>التاريخ</th><th>البند</th><th>المبلغ</th><th>ملاحظات</th><th></th></tr>"+(xs.map(e=>`<tr><td>${e.entry_date}</td><td>${esc(e.contractor||"")}</td><td class="num">${fmt(e.payments)}</td><td>${esc(e.notes||"")}</td><td><button class="btn sm danger" onclick="delExp(${e.id})">مسح</button></td></tr>`).join("")||'<tr><td colspan="5">لسه مفيش</td></tr>');
+}
+$("incShow").onclick=()=>renderInc();
+async function ensureExpAcc(){
+  if(expAcc)return expAcc.id;
+  const {data,error}=await sb.from("ezz_accounts").insert({name:"⟦مصروفات⟧ "+CID,type:"سواق",notes:coTag(CID)+EXP_ROW,opening_balance:0}).select();
+  if(error)throw error;return data[0].id;
+}
+$("x_save").onclick=async()=>{
+  const amt=+$("x_amt").value,cat=$("x_cat").value.trim();
+  if(!$("x_date").value||!amt)return msg("xMsg","اكتب التاريخ والمبلغ",false);
+  if(!cat)return msg("xMsg","اكتب البند (سولار، مرتبات...)",false);
+  try{const id=await ensureExpAcc();
+    const {error}=await sb.from("ezz_entries").insert({entry_date:$("x_date").value,account_id:id,payments:amt,contractor:cat,notes:$("x_notes").value||null,deduction:0});
+    if(error)throw error;}catch(e){return msg("xMsg","متحفظش: "+e.message,false);}
+  $("x_amt").value="";$("x_notes").value="";await loadAll();renderInc();msg("xMsg","تم حفظ المصروف",true);
+};
+async function delExp(id){if(!confirm("تمسح المصروف ده؟"))return;const {error}=await sb.from("ezz_entries").delete().eq("id",id);if(error)return alert(error.message);await loadAll();renderInc();}
+
 /* ---------- balances ---------- */
 $("balShow").onclick=()=>renderBal();$("b_type").onchange=()=>renderBal();
 function renderBal(){
@@ -914,7 +995,7 @@ function applyCo(){const c=companies.find(x=>x.id===CID);CO=c?c.name:DEF_CO;$("c
   $("coSel").innerHTML=companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")+'<option value="new">+ إضافة شركة جديدة</option>';
   $("coSel").value=CID;}
 async function switchCo(id){CID=id;try{localStorage.setItem("ezz_cid",id);}catch(e){}await loadAll();
-  const t=document.querySelector("#tabs button.on")?.dataset.tab||"home";go(t==="users"?"users":"home");}
+  const t=document.querySelector('#tabs button[aria-current="true"]')?.dataset.tab||"home";go(t==="users"?"users":"home");}
 $("coSel").onchange=()=>{const v=$("coSel").value;if(v==="new"){$("coSel").value=CID;go("users");$("coName").focus();return;}switchCo(+v);};
 function renderCompanies(){
   $("cuCard").hidden=true;
