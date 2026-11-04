@@ -120,3 +120,18 @@ do $$ begin
   end if;
 end $$;
 revoke all on public.ezz_companies, public.ezz_company_users from anon;
+
+-- أي حد يعمل حساب جديد ويكتب اسم شركته، بتتعمله شركة جديدة وبيبقى مديرها (ومش بيشوف غيرها)
+create or replace function public.ezz_register_company(p_name text)
+returns bigint language plpgsql security definer set search_path = public as $$
+declare cid bigint; em text := lower(auth.jwt()->>'email');
+begin
+  if auth.uid() is null or coalesce(trim(p_name),'') = '' then raise exception 'not allowed'; end if;
+  select company_id into cid from ezz_company_users where lower(email) = em limit 1;
+  if cid is not null then return cid; end if;
+  insert into ezz_companies(name) values (trim(p_name)) returning id into cid;
+  insert into ezz_company_users(company_id, email, is_admin) values (cid, em, true);
+  return cid;
+end $$;
+revoke execute on function public.ezz_register_company(text) from anon, public;
+grant execute on function public.ezz_register_company(text) to authenticated;

@@ -138,6 +138,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     <form id="loginForm">
       <label>الإيميل<input id="email" type="email" autocomplete="username" required></label>
       <label>كلمة السر<input id="pass" type="password" autocomplete="current-password" required></label>
+      <label id="coNewWrap" hidden>اسم الشركة<input id="coNew" placeholder="مثلاً: شركة العاصم للمقاولات العمومية"></label>
       <div id="loginMsg" class="msg" hidden></div>
       <div class="acts"><button class="btn primary" type="submit">دخول</button><button class="btn" type="button" id="signupBtn">حساب جديد</button></div>
     </form>
@@ -909,6 +910,7 @@ async function switchCo(id){CID=id;try{localStorage.setItem("ezz_cid",id);}catch
 $("coSel").onchange=()=>{const v=$("coSel").value;if(v==="new"){$("coSel").value=CID;go("users");$("coName").focus();return;}switchCo(+v);};
 function renderCompanies(){
   $("coAddRow").hidden=!isOwner||!coReady;
+  $("memTable").closest(".card").hidden=!isOwner;
   if(!coReady){$("coTable").innerHTML='<tr><td>علشان تقدر تضيف شركات، لازم ملف «شركات.sql» يتشغل على قاعدة البيانات مرة واحدة.</td></tr>';$("cuCard").hidden=true;return;}
   $("cuCard").hidden=false;
   $("coTable").innerHTML="<tr><th>الشركة</th><th></th></tr>"+companies.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.id===CID?' <span class="pill">الشغالة دلوقتي</span>':""}</td><td>${c.id!==CID?`<button class="btn sm primary" onclick="switchCo(${c.id})">افتحها</button> `:""}${isOwner?`<button class="btn sm ghost" onclick="renameCo(${c.id})">تغيير الاسم</button>`:""}</td></tr>`).join("");
@@ -986,9 +988,11 @@ $("loginForm").onsubmit=async e=>{
   msg("loginMsg",/confirm/i.test(m)?"الإيميل ده لسه متأكدش. افتح رسالة التأكيد اللي جاتلك على الإيميل وبعدين ادخل.":/invalid/i.test(m)?"الإيميل أو كلمة السر غلط":/fetch|network/i.test(m)?"مفيش اتصال بالنت، اتأكد وجرّب تاني":"مقدرتش أدخل: "+m,false);
 };
 $("signupBtn").onclick=async()=>{
-  const email=$("email").value.trim().toLowerCase(),password=$("pass").value;
+  if($("coNewWrap").hidden){$("coNewWrap").hidden=false;$("coNew").focus();return msg("loginMsg","اكتب اسم شركتك، وبعدين دوس «حساب جديد» تاني",true);}
+  const email=$("email").value.trim().toLowerCase(),password=$("pass").value,company=$("coNew").value.trim();
   if(!email||password.length<6)return msg("loginMsg","اكتب الإيميل وكلمة سر 6 حروف على الأقل",false);
-  const {data,error}=await sb.auth.signUp({email,password});
+  if(!company)return msg("loginMsg","اكتب اسم الشركة",false);
+  const {data,error}=await sb.auth.signUp({email,password,options:{data:{company_name:company}}});
   if(error)return msg("loginMsg",error.message,false);
   if(data.session)start();else msg("loginMsg","اتبعتلك رسالة تأكيد على الإيميل، افتحها وبعدين ادخل",true);
 };
@@ -999,7 +1003,11 @@ if(DEMO){const b=document.createElement("div");b.className="demobar";b.innerHTML
 async function start(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$("gate").hidden=false;$("app").hidden=true;return;}
-  const {data:ok,error:rpcErr}=await sb.rpc("ezz_claim_first_admin");
+  let {data:ok,error:rpcErr}=await sb.rpc("ezz_claim_first_admin");
+  const wantCo=session.user.user_metadata?.company_name;
+  if(!rpcErr&&!ok&&wantCo){const r=await sb.rpc("ezz_register_company",{p_name:wantCo});
+    if(r.error){$("gate").hidden=false;$("app").hidden=true;return msg("loginMsg",/duplicate|unique/i.test(r.error.message)?"فيه شركة متسجلة بالاسم ده قبل كده. كلم صاحب البرنامج.":"مقدرتش أسجل الشركة: "+r.error.message,false);}
+    ok=true;try{localStorage.setItem("ezz_cid",r.data);}catch(e){}}
   if(rpcErr){$("gate").hidden=false;$("app").hidden=true;
     msg("loginMsg",/does not exist|Could not find|schema cache/i.test(rpcErr.message||"")?"قاعدة بيانات البرنامج ده لسه متجهزتش. الصق ملف SQL بتاعه في Supabase مرة واحدة وبعدين ادخل.":"مشكلة في الاتصال بقاعدة البيانات: "+rpcErr.message,false);return;}
   if(!ok){await sb.auth.signOut();$("gate").hidden=false;$("app").hidden=true;msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة المستخدمين.",false);return;}
