@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>عز الدين للمقاولات</title>
+<title>كشوف الحساب</title>
 <meta name="theme-color" content="#1c3a5a"><meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -133,7 +133,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 
 <div id="gate" hidden>
   <div class="card">
-    <div class="logo" data-logo><img src="icon-192.png" alt=""></div>
+    <div class="logo" data-logo><span>عز</span></div>
     <h2>تسجيل الدخول</h2>
     <div class="hint" style="margin:0">كشوف حساب الموردين والعملاء الأسبوعية. البيانات محفوظة أونلاين.</div>
     <form id="loginForm">
@@ -149,7 +149,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 
 <div class="shell" id="app" hidden>
   <aside id="side">
-    <div class="sbrand"><div class="logo" data-logo><img src="icon-192.png" alt=""></div><div id="coSide"><b>عز الدين للمقاولات</b><small>العامة والتوريدات</small></div></div>
+    <div class="sbrand"><div class="logo" data-logo><span>عز</span></div><div id="coSide"><b>عز الدين للمقاولات</b><small>العامة والتوريدات</small></div></div>
     <div class="cosel" id="coSelWrap" hidden><label>الشركة<select id="coSel"></select></label></div>
     <nav id="tabs">
       <div class="grp">الرئيسية</div>
@@ -903,8 +903,8 @@ function themeOf(c){if(!c)return "blue";const m=/^theme:(\w+)/.exec(c.phone||"")
   const i=companies.filter(x=>x.id).findIndex(x=>x.id===c.id);return THEME_ORDER[Math.max(0,i)%THEME_ORDER.length];}
 function applyLook(name,theme,ezz){const t=THEMES[theme]||THEMES.blue,st=document.documentElement.style;
   st.setProperty("--accent",t[1]);st.setProperty("--accent-soft",t[2]);st.setProperty("--accent-ink",t[3]);st.setProperty("--top",`linear-gradient(90deg,${t[4]},${t[5]})`);
-  document.querySelector('meta[name="theme-color"]').content=t[4];document.title=ezz?"عز الدين للمقاولات":name;
-  document.querySelectorAll("[data-logo]").forEach(l=>l.innerHTML=ezz?'<img src="icon-192.png" alt="">':"<span>"+esc(shortName(name))+"</span>");
+  document.querySelector('meta[name="theme-color"]').content=t[4];document.title=name;
+  document.querySelectorAll("[data-logo]").forEach(l=>l.innerHTML="<span>"+esc(shortName(name))+"</span>");
   try{localStorage.setItem("ezz_look",JSON.stringify({name,theme,ezz}));}catch(e){}}
 try{const L=JSON.parse(localStorage.getItem("ezz_look")||"null");if(L&&!DEMO)applyLook(L.name,L.theme,L.ezz);}catch(e){}
 const DEF_CO="عز الدين للمقاولات العامة والتوريدات",SIDE0=$("coSide").innerHTML;
