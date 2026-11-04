@@ -147,7 +147,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 
 <div class="shell" id="app" hidden>
   <aside id="side">
-    <div class="sbrand"><img class="logo" src="icon-192.png" alt=""><div><b>عز الدين للمقاولات</b><small>العامة والتوريدات</small></div></div>
+    <div class="sbrand"><img class="logo" src="icon-192.png" alt=""><div id="coSide"><b>عز الدين للمقاولات</b><small>العامة والتوريدات</small></div></div>
     <nav id="tabs">
       <div class="grp">الرئيسية</div>
       <button data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>الرئيسية</span></button>
@@ -172,7 +172,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
   <div class="main">
     <header>
       <button class="menu" id="menuBtn" aria-label="القائمة"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-      <div class="ttl"><b id="pgTitle">الرئيسية</b><small>عز الدين للمقاولات العامة والتوريدات</small></div>
+      <div class="ttl"><b id="pgTitle">الرئيسية</b><small id="coSub">عز الدين للمقاولات العامة والتوريدات</small></div>
       <button class="inst" data-install hidden><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>تنزيل كتطبيق</span></button>
     </header>
 
@@ -329,6 +329,12 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <div id="memMsg" class="msg" hidden></div>
       </div>
       <div class="card">
+        <h3>اسم الشركة</h3>
+        <p class="hint">الاسم اللي بيظهر في راس الكشوف والطباعة وصور الواتساب. بيتحفظ على الجهاز ده.</p>
+        <div class="row" style="margin-top:0"><input id="coName" style="flex:1;min-width:220px"><button class="btn primary" id="coSave">حفظ الاسم</button><button class="btn ghost" id="coReset">رجّع الاسم الأصلي</button></div>
+        <div id="coMsg" class="msg" hidden></div>
+      </div>
+      <div class="card">
         <h3>بيانات تجريبية</h3>
         <p class="hint">بتضيف 8 حسابات (4 موردين و4 عملاء) وحركات آخر 4 أسابيع علشان تجرب الكشوف والأرباح. كل حاجة متعلّم عليها «بيانات تجريبية»، وتقدر تمسحها كلها بزرار واحد من غير ما تأثر على بياناتك الحقيقية.</p>
         <div class="row" style="margin-top:0"><button class="btn primary" id="seedDemo">إضافة بيانات تجريبية</button><button class="btn danger" style="padding:10px 16px" id="clearDemo">مسح البيانات التجريبية</button></div>
@@ -404,6 +410,7 @@ function demoClient(){
 const DEMO=location.hash==="#demo";
 const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
+let CO=(()=>{try{return localStorage.getItem("ezz_co_name")}catch(e){return null}})()||"عز الدين للمقاولات العامة والتوريدات";
 const fmt=n=>(n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const N=v=>v==null||v===""?"":Number(v).toLocaleString("en-US",{maximumFractionDigits:2});
 const cls=n=>Number(n)<0?' class="neg num"':' class="num"';
@@ -709,7 +716,7 @@ function renderSt(){
   const kind=TYPES[a.type]==="مورد"?"مورد":"عميل";
   const final=prev+T.net;
   const meaning=kind==="مورد"?(final>=0?"مستحق للمورد عندنا":"مستحق لينا عند المورد"):(final>=0?"مستحق لينا عند العميل":"مستحق للعميل عندنا");
-  $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">كشف حساب ${kind} أسبوعي</div></div>
+  $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">كشف حساب ${kind} أسبوعي</div></div>
    <div class="kv"><div>الكود<b class="num">${esc(a.code||"")}</b></div><div>اسم ال${kind}<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div>${coOf(a)?`<div>الشركة<b>${esc(coOf(a))}</b></div>`:""}<div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b class="num">${$("s_calc").value}</b></div><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
    <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>الجرار</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
    <tbody>${body||'<tr><td colspan="16">مفيش حركات في الأسبوع ده</td></tr>'}</tbody>
@@ -723,7 +730,7 @@ async function elToFile(el,name){
   if(!window.html2canvas)throw new Error("no h2c");
   const box=document.createElement("div");box.className="sheet capture";box.style.cssText="position:fixed;left:-10000px;top:0";
   const c=el.cloneNode(true);c.querySelectorAll("button,.noprint").forEach(x=>x.remove());c.querySelectorAll(".tw").forEach(x=>x.style.overflow="visible");
-  if(!c.querySelector(".co-head"))box.innerHTML='<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div></div>';
+  if(!c.querySelector(".co-head"))box.innerHTML='<div class="co-head"><div class="co">'+esc(CO)+'</div></div>';
   box.appendChild(c);document.body.appendChild(box);
   try{const canvas=await html2canvas(box,{scale:2,backgroundColor:"#ffffff",windowWidth:1200});
     const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));return new File([blob],"ezz-"+(name.replace(/[^\w-]+/g," ").trim().replace(/ +/g,"-")||"kashf")+"-"+Date.now()%100000+".png",{type:"image/png"});}
@@ -779,7 +786,7 @@ function renderReg(){
     <div class="kpi"><div>عدد النقلات</div><strong class="num">${N(sum(trips,"trips"))}</strong></div>
     <div class="kpi"><div>الكمية (متر)</div><strong class="num">${N(sum(trips,"quantity"))}</strong></div>
     <div class="kpi"><div>${regCat==="مورد"?"المدفوع للموردين":"المحصّل من العملاء"}</div><strong class="num">${fmt(sum(rows,"payments"))}</strong></div></div>
-   <div class="card"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">${word} من ${f} إلى ${t}</div></div>
+   <div class="card"><div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">${word} من ${f} إلى ${t}</div></div>
    <h3>${word} حسب ${regCat==="مورد"?"المورد":"العميل"}</h3><div class="tw"><table><thead><tr><th>الكود</th><th>الاسم</th><th>النوع</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>الرصيد الحالي</th></tr></thead><tbody>
    ${ids.map(id=>{const a=accById(id),g=by[id]||{trips:0,qty:0,val:0},b=balNow(id);return `<tr><td class="num">${esc(a.code)}</td><td>${esc(a.name)}</td><td>${a.type}</td><td class="num">${N(g.trips)}</td><td class="num">${N(g.qty)}</td><td class="num">${fmt(g.val)}</td><td class="num">${fmt(pays[id]||0)}</td><td${cls(b)}>${fmt(b)}</td></tr>`;}).join("")||'<tr><td colspan="8">مفيش حركات في الفترة دي</td></tr>'}
    </tbody></table></div></div>
@@ -806,7 +813,7 @@ function renderProfit(){
     <div class="kpi"><div>منها نقل (سواقين)</div><strong class="num">${fmt(Pd)}</strong></div>
     <div class="kpi"><div>منها خامات (محاجر)</div><strong class="num">${fmt(Pq)}</strong></div>
     <div class="kpi"><div>نسبة الربح</div><strong class="num">${S?(pr/S*100).toFixed(1)+"%":"-"}</strong></div></div>
-   <div class="card"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">الأرباح من ${f} إلى ${t}</div></div>
+   <div class="card"><div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">الأرباح من ${f} إلى ${t}</div></div>
    <h3>الربح أسبوع بأسبوع</h3><div class="tw"><table><thead><tr><th>الأسبوع</th><th>المبيعات</th><th>المشتريات</th><th>الربح</th></tr></thead><tbody>
    ${wrows.map(r=>`<tr><td>${r.w} إلى ${r.e}</td><td class="num">${fmt(r.s)}</td><td class="num">${fmt(r.p)}</td><td${cls(r.pr)}><b>${fmt(r.pr)}</b></td></tr>`).join("")}
    </tbody><tfoot><tr><td>الإجمالي</td><td class="num">${fmt(S)}</td><td class="num">${fmt(P)}</td><td${cls(pr)}>${fmt(pr)}</td></tr></tfoot></table></div></div>`;
@@ -821,7 +828,7 @@ function renderBal(){
     const w=entries.filter(x=>x.account_id===a.id&&x.entry_date>=s&&x.entry_date<=e),prev=balBefore(a.id,s),wt=w.filter(isTrip);
     return {a,prev,trips:sum(wt,"trips"),qty:sum(wt,"quantity"),val:sum(wt,"value"),pay:sum(w,"payments"),net:sum(w,"net"),bal:prev+sum(w,"net")};});
   const S=k=>rows.reduce((t,r)=>t+r[k],0);
-  $("balOut").innerHTML=`<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">ملخص الأرصدة من ${s} إلى ${e}</div></div><div class="tw"><table>
+  $("balOut").innerHTML=`<div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">ملخص الأرصدة من ${s} إلى ${e}</div></div><div class="tw"><table>
    <thead><tr><th>الكود</th><th>اسم الحساب</th><th>الشركة</th><th>النوع</th><th>الرصيد السابق</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
    <tbody>${rows.map(r=>`<tr><td class="num">${esc(r.a.code)}</td><td>${esc(r.a.name)}</td><td>${esc(coOf(r.a))}</td><td><span class="pill ${TYPES[r.a.type]==="مورد"?"sup":"cus"}">${r.a.type}</span></td><td${cls(r.prev)}>${fmt(r.prev)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.qty)}</td><td class="num">${fmt(r.val)}</td><td class="num">${fmt(r.pay)}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(r.bal)}><b>${fmt(r.bal)}</b></td></tr>`).join("")||'<tr><td colspan="11">لسه مفيش حسابات</td></tr>'}</tbody>
    <tfoot><tr><td colspan="4">الإجمالي</td><td class="num">${fmt(S("prev"))}</td><td class="num">${N(S("trips"))}</td><td class="num">${N(S("qty"))}</td><td class="num">${fmt(S("val"))}</td><td class="num">${fmt(S("pay"))}</td><td class="num">${fmt(S("net"))}</td><td class="num">${fmt(S("bal"))}</td></tr></tfoot></table></div>`;
@@ -866,6 +873,13 @@ $("backup").onclick=()=>{
   const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([html],{type:"application/vnd.ms-excel"}));l.download="ezz-backup-"+today()+".xls";l.click();
 };
 
+const DEF_CO="عز الدين للمقاولات العامة والتوريدات",CO_KEY="ezz_co_name",SIDE0=$("coSide").innerHTML;
+function applyCo(){$("coSub").textContent=CO;$("coName").value=CO;
+  $("coSide").innerHTML=CO===DEF_CO?SIDE0:"<b>"+esc(CO)+"</b>";}
+applyCo();
+$("coSave").onclick=()=>{const v=$("coName").value.trim();if(!v)return msg("coMsg","اكتب اسم الشركة",false);
+  CO=v;try{localStorage.setItem(CO_KEY,v);}catch(e){}applyCo();msg("coMsg","تمام، الاسم اتغير وهيظهر في الكشوف والطباعة",true);};
+$("coReset").onclick=()=>{CO=DEF_CO;try{localStorage.removeItem(CO_KEY);}catch(e){}applyCo();msg("coMsg","رجع الاسم الأصلي",true);};
 const BK_KEY="ezz_last_backup";
 function showLastBackup(){let d=null;try{d=localStorage.getItem(BK_KEY);}catch(e){}
   $("lastBackup").textContent=d?"آخر نسخة اتحفظت من الجهاز ده: "+d:"لسه متعملتش نسخة من الجهاز ده.";}
