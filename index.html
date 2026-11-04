@@ -929,7 +929,9 @@ async function renameCo(id){const c=companies.find(x=>x.id===id);const v=prompt(
   await loadAll();renderCompanies();msg("coMsg","تم تغيير الاسم",true);}
 $("coAdd").onclick=async()=>{const name=$("coName").value.trim();if(!name)return msg("coMsg","اكتب اسم الشركة",false);
   if(companies.some(c=>c.name===name))return msg("coMsg","الشركة دي موجودة قبل كده",false);
-  const {data,error}=await sb.from("ezz_accounts").insert({name,type:"عميل شركة",notes:CO_ROW,opening_balance:0,code:"co-"+Date.now()}).select();
+  const row={name,type:"عميل شركة",notes:CO_ROW,opening_balance:0,code:"co-"+Date.now()};
+  let {data,error}=await sb.from("ezz_accounts").insert(row).select();
+  if(error&&/code/.test(error.message||"")){delete row.code;({data,error}=await sb.from("ezz_accounts").insert(row).select());}
   if(error)return msg("coMsg",error.code==="23505"?"الاسم ده مستخدم":error.message,false);
   $("coName").value="";await switchCo(data[0].id);go("users");msg("coMsg","تم إضافة «"+name+"» وفتحتهالك. ابدأ ضيف الموردين والعملاء بتوعها.",true);};
 const BK_KEY="ezz_last_backup";
