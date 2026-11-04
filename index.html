@@ -929,13 +929,13 @@ $("restoreFile").onchange=async ev=>{
 /* ---------- auth ---------- */
 $("loginForm").onsubmit=async e=>{
   e.preventDefault();
-  const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pass").value});
+  const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim().toLowerCase(),password:$("pass").value});
   if(!error)return start();
   const m=error.message||"";
   msg("loginMsg",/confirm/i.test(m)?"الإيميل ده لسه متأكدش. افتح رسالة التأكيد اللي جاتلك على الإيميل وبعدين ادخل.":/invalid/i.test(m)?"الإيميل أو كلمة السر غلط":/fetch|network/i.test(m)?"مفيش اتصال بالنت، اتأكد وجرّب تاني":"مقدرتش أدخل: "+m,false);
 };
 $("signupBtn").onclick=async()=>{
-  const email=$("email").value.trim(),password=$("pass").value;
+  const email=$("email").value.trim().toLowerCase(),password=$("pass").value;
   if(!email||password.length<6)return msg("loginMsg","اكتب الإيميل وكلمة سر 6 حروف على الأقل",false);
   const {data,error}=await sb.auth.signUp({email,password});
   if(error)return msg("loginMsg",error.message,false);
