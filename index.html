@@ -160,6 +160,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <button data-tab="sup"><svg viewBox="0 0 24 24"><path d="M1 4h13v11H1zM14 8h4l3 3v4h-7M5.5 18.5a1.5 1.5 0 1 0 0-.01M17.5 18.5a1.5 1.5 0 1 0 0-.01"/></svg><span>الموردين</span></button>
       <button data-tab="cus"><svg viewBox="0 0 24 24"><path d="M16 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>العملاء</span></button>
       <button data-tab="st"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8"/></svg><span>كشف حساب</span></button>
+      <button data-tab="ptn"><svg viewBox="0 0 24 24"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1M14 15h4a4 4 0 0 1 4 4v1"/></svg><span>الشركاء الممولين</span></button>
       <button data-tab="veh"><svg viewBox="0 0 24 24"><path d="M3 16V8h9v8M12 11h4l3 3v2h-7M2 16h20M6.5 18.5a1.5 1.5 0 1 0 0-.01M17.5 18.5a1.5 1.5 0 1 0 0-.01"/></svg><span>الجرارات والتكعيب</span></button>
       <div class="grp">التقارير</div>
       <button data-tab="purch"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6M9 20a1 1 0 1 0 0-.01M18 20a1 1 0 1 0 0-.01"/></svg><span>المشتريات</span></button>
@@ -296,6 +297,42 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     </section>
 
     <!-- الأرباح -->
+    <section id="v-ptn" hidden>
+      <div class="card noprint">
+        <h3>شريك جديد</h3>
+        <div class="row" style="margin-top:0">
+          <label style="flex:1;min-width:180px">اسم الشريك<input id="pn_name"></label>
+          <label>نسبته من الربح %<input id="pn_share" type="number" inputmode="decimal" step="any"></label>
+          <label>رأس المال اللي دفعه قبل كده<input id="pn_open" type="number" inputmode="decimal" step="any" value="0"></label>
+          <button class="btn primary" id="pn_add">إضافة شريك</button>
+        </div>
+        <div id="pnMsg" class="msg" hidden></div>
+      </div>
+      <div class="card noprint">
+        <h3>تسجيل تمويل أو سحب</h3>
+        <div class="row" style="margin-top:0">
+          <label>التاريخ<input id="pt_date" type="date"></label>
+          <label style="min-width:180px">الشريك<select id="pt_acc"></select></label>
+          <label>النوع<select id="pt_kind"><option>تمويل</option><option>سحب</option></select></label>
+          <label>المبلغ<input id="pt_amt" type="number" inputmode="decimal" step="any"></label>
+          <label style="flex:1;min-width:140px">ملاحظات<input id="pt_notes"></label>
+          <button class="btn primary" id="pt_save">حفظ</button>
+        </div>
+        <div id="ptMsg" class="msg" hidden></div>
+      </div>
+      <div class="card noprint">
+        <div class="row" style="margin-top:0">
+          <label>حساب الربح من<input id="pp_from" type="date"></label>
+          <label>إلى<input id="pp_to" type="date"></label>
+          <button class="btn primary" id="ppShow">عرض</button>
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" onclick="shareSection('ptnOut','الشركاء الممولين')">واتساب</button>
+        </div>
+        <p class="hint" style="margin:10px 0 0">حصة الشريك = صافي الربح من «قائمة الدخل» في الفترة دي × نسبته. الرصيد = رأس المال + التمويل + حصته من الربح − المسحوبات.</p>
+      </div>
+      <div id="ptnOut"></div>
+    </section>
+
     <section id="v-inc" hidden>
       <div class="card noprint">
         <div class="row" style="margin-top:0">
@@ -450,9 +487,9 @@ const DEMO=location.hash==="#demo";
 const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"ezz_auth"}});
 const $=id=>document.getElementById(id);
 /* ---------- الشركات: كل شركة بحساباتها لوحدها ---------- */
-let ALLACC=[],expenses=[],expAcc=null,CID=0,companies=[],isOwner=false,myEmail="";
+let ALLACC=[],partners=[],ptnTx=[],expenses=[],expAcc=null,CID=0,companies=[],isOwner=false,myEmail="";
 try{CID=+localStorage.getItem("ezz_cid")||0;}catch(e){}
-const EXP_ROW="⟦expenses⟧",CO_ROW="⟦company⟧",coTag=id=>id?"⟦co:"+id+"⟧":"";
+const PTN_ROW="⟦partner⟧",EXP_ROW="⟦expenses⟧",CO_ROW="⟦company⟧",coTag=id=>id?"⟦co:"+id+"⟧":"";
 const tagNotes=r=>{if(!CID)return r;const f=x=>({...x,notes:coTag(CID)+(x.notes||"")});return Array.isArray(r)?r.map(f):f(r);};
 const parseCo=a=>{const m=/^⟦co:(\d+)⟧/.exec(a.notes||"");return {...a,_co:m?+m[1]:0,notes:m?(a.notes.slice(m[0].length)||null):a.notes};};
 function T(t){const q=sb.from(t);if(t!=="ezz_accounts"&&t!=="ezz_vehicles")return q;
@@ -492,12 +529,14 @@ async function loadAll(){
   companies=[{id:0,name:DEF_CO},...allAcc.filter(x=>x.notes===CO_ROW).sort((x,y)=>x.id-y.id).map(x=>({id:x.id,name:x.name,phone:x.phone}))];
   if(!companies.some(c=>c.id===CID))CID=0;
   expAcc=allAcc.find(x=>x.notes===EXP_ROW&&x._co===CID)||null;
-  accounts=allAcc.filter(x=>x.notes!==CO_ROW&&x.notes!==EXP_ROW&&x._co===CID).sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
+  partners=allAcc.filter(x=>x.notes===PTN_ROW&&x._co===CID).map(x=>({...x,name:x.name.replace(/ ⟦شريك \d+⟧$/,""),share:+((/share:([\d.]+)/.exec(x.phone||"")||[])[1]||0),opening_balance:+x.opening_balance||0})).sort((a,b)=>a.id-b.id);
+  accounts=allAcc.filter(x=>x.notes!==CO_ROW&&x.notes!==EXP_ROW&&x.notes!==PTN_ROW&&x._co===CID).sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
   let all=[],from=0;
   for(;;){const {data,error}=await T("ezz_entries").select("*").order("id").range(from,from+999);
     if(error){alert("مشكلة في تحميل الحركات: "+error.message);break;}
     all=all.concat(data); if(data.length<1000)break; from+=1000;}
   const accIds=new Set(accounts.map(x=>x.id));
+  const pIds=new Set(partners.map(x=>x.id));ptnTx=all.filter(e=>pIds.has(e.account_id)).map(e=>({...e,payments:+e.payments||0})).sort((a,b)=>b.entry_date.localeCompare(a.entry_date)||b.id-a.id);
   expenses=expAcc?all.filter(e=>e.account_id===expAcc.id).map(e=>({...e,payments:+e.payments||0})).sort((a,b)=>b.entry_date.localeCompare(a.entry_date)||b.id-a.id):[];
   entries=all.filter(e=>accIds.has(e.account_id)).map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
   const {data:vs,error:e3}=await T("ezz_vehicles").select("*");
@@ -526,8 +565,8 @@ function fillDatalists(){
 }
 
 /* ---------- navigation ---------- */
-const TITLES={veh:"الجرارات والتكعيب",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",inc:"قائمة الدخل",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
-const VIEW={veh:"veh",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",inc:"inc",bal:"bal",users:"users"};
+const TITLES={veh:"الجرارات والتكعيب",ptn:"الشركاء الممولين",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",inc:"قائمة الدخل",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
+const VIEW={veh:"veh",ptn:"ptn",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",inc:"inc",bal:"bal",users:"users"};
 let tab="home";
 function side(o){document.body.classList.toggle("side-open",o);$("scrim").hidden=!o;}
 $("menuBtn").onclick=()=>side(true);$("scrim").onclick=()=>side(false);
@@ -544,6 +583,7 @@ function go(t,opts={}){
   if(t==="purch"||t==="sales")setupReg(t==="purch"?"مورد":"عميل");
   if(t==="profit")renderProfit();
   if(t==="inc")renderInc();
+  if(t==="ptn")renderPtn();
   if(t==="bal")renderBal();
   if(t==="users"){loadMembers();renderCompanies();}
   if(t==="veh")setupVeh();
@@ -922,6 +962,51 @@ $("x_save").onclick=async()=>{
   $("x_amt").value="";$("x_notes").value="";await loadAll();renderInc();msg("xMsg","تم حفظ المصروف",true);
 };
 async function delExp(id){if(!confirm("تمسح المصروف ده؟"))return;const {error}=await sb.from("ezz_entries").delete().eq("id",id);if(error)return alert(error.message);await loadAll();renderInc();}
+
+/* ---------- الشركاء الممولين ---------- */
+function netProfit(f,t){const inR=entries.filter(e=>e.entry_date>=f&&e.entry_date<=t&&isTrip(e));
+  const S=sum(inR.filter(e=>catOf(e)==="عميل"),"value"),C=sum(inR.filter(e=>catOf(e)==="مورد"),"value");
+  return S-C-sum(expenses.filter(e=>e.entry_date>=f&&e.entry_date<=t),"payments");}
+function renderPtn(){
+  if(!$("pt_date").value)$("pt_date").value=today();
+  if(!$("pp_from").value){const d=[...entries,...expenses].map(e=>e.entry_date).sort()[0];$("pp_from").value=d||monthStart();}
+  if(!$("pp_to").value)$("pp_to").value=today();
+  const f=$("pp_from").value,t=$("pp_to").value,NP=netProfit(f,t),tot=partners.reduce((s,p)=>s+p.share,0);
+  $("pt_acc").innerHTML=partners.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")||'<option value="">ضيف شريك الأول</option>';
+  const rows=partners.map(p=>{const tx=ptnTx.filter(e=>e.account_id===p.id),fund=sum(tx.filter(e=>e.contractor!=="سحب"),"payments"),wd=sum(tx.filter(e=>e.contractor==="سحب"),"payments");
+    const sh=NP*p.share/100;return {p,fund,wd,sh,bal:p.opening_balance+fund+sh-wd};});
+  $("ptnOut").innerHTML=`<div class="kpis">
+    <div class="kpi hero"><div>صافي الربح في الفترة</div><strong class="num">${fmt(NP)}</strong></div>
+    <div class="kpi"><div>إجمالي التمويل</div><strong class="num">${fmt(rows.reduce((s,r)=>s+r.p.opening_balance+r.fund,0))}</strong></div>
+    <div class="kpi"><div>إجمالي المسحوبات</div><strong class="num">${fmt(rows.reduce((s,r)=>s+r.wd,0))}</strong></div>
+    <div class="kpi"><div>مجموع النسب</div><strong class="num${tot!==100&&partners.length?" neg":""}">${N(tot)}%</strong></div></div>
+   <div class="card"><div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">الشركاء الممولين، الربح من ${f} إلى ${t}</div></div>
+   ${tot!==100&&partners.length?'<p class="hint neg noprint">مجموع نسب الشركاء مش 100%، راجع النسب.</p>':""}
+   <div class="tw"><table><thead><tr><th>الشريك</th><th>النسبة</th><th>رأس المال</th><th>تمويل</th><th>مسحوبات</th><th>حصته من الربح</th><th>رصيده</th><th class="noprint"></th></tr></thead><tbody>
+   ${rows.map(r=>`<tr><td><b>${esc(r.p.name)}</b></td><td class="num">${N(r.p.share)}%</td><td class="num">${fmt(r.p.opening_balance)}</td><td class="num">${fmt(r.fund)}</td><td class="num">${fmt(r.wd)}</td><td${cls(r.sh)}>${fmt(r.sh)}</td><td${cls(r.bal)}><b>${fmt(r.bal)}</b></td><td class="noprint"><button class="btn sm ghost" onclick="editPtn(${r.p.id})">تعديل</button> <button class="btn sm danger" onclick="delPtn(${r.p.id})">حذف</button></td></tr>`).join("")||'<tr><td colspan="8">لسه مفيش شركاء</td></tr>'}
+   </tbody>${rows.length?`<tfoot><tr><td>الإجمالي</td><td class="num">${N(tot)}%</td><td class="num">${fmt(rows.reduce((s,r)=>s+r.p.opening_balance,0))}</td><td class="num">${fmt(rows.reduce((s,r)=>s+r.fund,0))}</td><td class="num">${fmt(rows.reduce((s,r)=>s+r.wd,0))}</td><td class="num">${fmt(rows.reduce((s,r)=>s+r.sh,0))}</td><td class="num">${fmt(rows.reduce((s,r)=>s+r.bal,0))}</td><td class="noprint"></td></tr></tfoot>`:""}</table></div>
+   <h3>حركات الشركاء</h3><div class="tw"><table><thead><tr><th>التاريخ</th><th>الشريك</th><th>النوع</th><th>المبلغ</th><th>ملاحظات</th><th class="noprint"></th></tr></thead><tbody>
+   ${ptnTx.map(e=>`<tr><td>${e.entry_date}</td><td>${esc((partners.find(p=>p.id===e.account_id)||{}).name||"")}</td><td>${esc(e.contractor||"تمويل")}</td><td class="num">${fmt(e.payments)}</td><td>${esc(e.notes||"")}</td><td class="noprint"><button class="btn sm danger" onclick="delPtx(${e.id})">مسح</button></td></tr>`).join("")||'<tr><td colspan="6">لسه مفيش حركات</td></tr>'}
+   </tbody></table></div></div>`;
+}
+$("ppShow").onclick=()=>renderPtn();
+$("pn_add").onclick=async()=>{const name=$("pn_name").value.trim(),share=+$("pn_share").value||0;
+  if(!name)return msg("pnMsg","اكتب اسم الشريك",false);
+  const {error}=await sb.from("ezz_accounts").insert({name:name+" ⟦شريك "+CID+"⟧",type:"عميل شركة",phone:"share:"+share,opening_balance:+$("pn_open").value||0,notes:coTag(CID)+PTN_ROW});
+  if(error)return msg("pnMsg",error.code==="23505"?"الشريك ده متسجل قبل كده":error.message,false);
+  $("pn_name").value="";$("pn_share").value="";$("pn_open").value=0;await loadAll();renderPtn();msg("pnMsg","تم إضافة الشريك",true);};
+async function editPtn(id){const p=partners.find(x=>x.id===id);
+  const sh=prompt("نسبة "+p.name+" من الربح %",p.share);if(sh===null)return;
+  const op=prompt("رأس المال اللي دفعه قبل كده",p.opening_balance);if(op===null)return;
+  const {error}=await sb.from("ezz_accounts").update({phone:"share:"+(+sh||0),opening_balance:+op||0}).eq("id",id);if(error)return alert(error.message);await loadAll();renderPtn();}
+async function delPtn(id){const p=partners.find(x=>x.id===id);if(!confirm("هتحذف الشريك "+p.name+" وكل حركاته؟"))return;
+  await sb.from("ezz_entries").delete().eq("account_id",id);const {error}=await sb.from("ezz_accounts").delete().eq("id",id);if(error)return alert(error.message);await loadAll();renderPtn();}
+$("pt_save").onclick=async()=>{const id=+$("pt_acc").value,amt=+$("pt_amt").value;
+  if(!id)return msg("ptMsg","ضيف شريك الأول",false);if(!$("pt_date").value||!amt)return msg("ptMsg","اكتب التاريخ والمبلغ",false);
+  const {error}=await sb.from("ezz_entries").insert({entry_date:$("pt_date").value,account_id:id,payments:amt,contractor:$("pt_kind").value,notes:$("pt_notes").value||null,deduction:0});
+  if(error)return msg("ptMsg","متحفظش: "+error.message,false);
+  $("pt_amt").value="";$("pt_notes").value="";await loadAll();renderPtn();msg("ptMsg","تم الحفظ",true);};
+async function delPtx(id){if(!confirm("تمسح الحركة دي؟"))return;const {error}=await sb.from("ezz_entries").delete().eq("id",id);if(error)return alert(error.message);await loadAll();renderPtn();}
 
 /* ---------- balances ---------- */
 $("balShow").onclick=()=>renderBal();$("b_type").onchange=()=>renderBal();
