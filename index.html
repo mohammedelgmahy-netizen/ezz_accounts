@@ -151,6 +151,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <button data-tab="sup"><svg viewBox="0 0 24 24"><path d="M1 4h13v11H1zM14 8h4l3 3v4h-7M5.5 18.5a1.5 1.5 0 1 0 0-.01M17.5 18.5a1.5 1.5 0 1 0 0-.01"/></svg><span>الموردين</span></button>
       <button data-tab="cus"><svg viewBox="0 0 24 24"><path d="M16 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>العملاء</span></button>
       <button data-tab="st"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8"/></svg><span>كشف حساب</span></button>
+      <button data-tab="veh"><svg viewBox="0 0 24 24"><path d="M3 16V8h9v8M12 11h4l3 3v2h-7M2 16h20M6.5 18.5a1.5 1.5 0 1 0 0-.01M17.5 18.5a1.5 1.5 0 1 0 0-.01"/></svg><span>الجرارات والتكعيب</span></button>
       <div class="grp">التقارير</div>
       <button data-tab="purch"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.5 11h11L21 7H6M9 20a1 1 0 1 0 0-.01M18 20a1 1 0 1 0 0-.01"/></svg><span>المشتريات</span></button>
       <button data-tab="sales"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>المبيعات</span></button>
@@ -183,8 +184,9 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <div class="grid">
           <label>التاريخ<input id="e_date" type="date"></label>
           <label style="grid-column:span 2">اسم الحساب<select id="e_acc" class="accSel" data-cat=""></select></label>
-          <label>السيارة<input id="e_vehicle"></label>
+          <label>الجرار<input id="e_vehicle" list="vehList" autocomplete="off" placeholder="اكتب رقم الجرار"></label>
           <label>المقطورة<input id="e_trailer"></label>
+          <div id="vehHint" class="hint" style="grid-column:1/-1;margin:-4px 0 0;color:var(--accent-ink)"></div>
           <label>رقم البون<input id="e_bon"></label>
           <label>عدد النقلات<input id="e_trips" type="number" step="any" inputmode="decimal"></label>
           <label>التكعيب<input id="e_cubic" type="number" step="any" inputmode="decimal"></label>
@@ -198,7 +200,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
           <label>الشركة<input id="e_company" list="companies"></label>
           <label>ملاحظات<input id="e_notes"></label>
         </div>
-        <datalist id="contractors"></datalist><datalist id="companies"></datalist>
+        <datalist id="vehList"></datalist><datalist id="contractors"></datalist><datalist id="companies"></datalist>
         <div class="row"><button class="btn primary" id="saveEntry">حفظ</button></div>
         <div id="entryMsg" class="msg" hidden></div>
       </div>
@@ -222,6 +224,27 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <div class="card"><h3 id="accListTitle"></h3>
         <div class="row" style="margin:0 0 10px"><label>بحث بالاسم أو الكود<input id="accSearch"></label></div>
         <div class="tw"><table id="accTable"></table></div></div>
+    </section>
+
+    <!-- الجرارات -->
+    <section id="v-veh" hidden>
+      <div class="card">
+        <h3>تكويد جرار</h3>
+        <p class="hint">سجّل الجرار مرة واحدة بالمقطورة والتكعيب، وبعد كده لما تكتب رقمه في تسجيل النقلة، المقطورة والتكعيب بيتكتبوا لوحدهم. وأي جرار جديد تكتبه في نقلة بيتكود لوحده.</p>
+        <div class="grid">
+          <label>رقم الجرار<input id="v_plate" placeholder="مثال: ط ق ن 123"></label>
+          <label>رقم المقطورة<input id="v_trailer" placeholder="لو مفيش سيبها فاضية"></label>
+          <label>التكعيب (متر)<input id="v_cube" type="number" step="any" inputmode="decimal" placeholder="مثال: 20"></label>
+          <label>السواق<select id="v_driver"></select></label>
+          <label>ملاحظات<input id="v_notes"></label>
+        </div>
+        <div id="v_dup" class="hint" style="color:var(--bad);margin-top:6px"></div>
+        <div class="row"><button class="btn primary" id="saveVeh">تكويد الجرار</button></div>
+        <div id="vehMsg" class="msg" hidden></div>
+      </div>
+      <div class="card"><h3>الجرارات المكودة</h3>
+        <div class="row" style="margin:0 0 10px"><label>بحث برقم الجرار أو المقطورة<input id="vehSearch"></label><label>الشهر<input id="vehMonth" type="month"></label></div>
+        <div class="tw"><table id="vehTable"></table></div></div>
     </section>
 
     <!-- كشف حساب -->
@@ -344,7 +367,7 @@ function demoData(){
 }
 function demoClient(){
   const {acc,ent}=demoData(),codes={"عميل شركة":11000,"عميل محجر":12000,"سواق":21000,"محجر":22000},cnt={};
-  const DB={ezz_accounts:acc.map((a,i)=>({id:i+1,code:String(codes[a.type]+(cnt[a.type]=(cnt[a.type]||0)+1)),...a})),ezz_entries:[],ezz_members:[{email:"تجربة",is_admin:true,created_at:1}]};
+  const DB={ezz_accounts:acc.map((a,i)=>({id:i+1,code:String(codes[a.type]+(cnt[a.type]=(cnt[a.type]||0)+1)),...a})),ezz_entries:[],ezz_members:[{email:"تجربة",is_admin:true,created_at:1}],ezz_vehicles:[{id:1,plate:"ط ق ن 123",trailer:"م 456",cube:20,driver_id:1},{id:2,plate:"ر س م 852",trailer:"م 741",cube:21,driver_id:2},{id:3,plate:"س ع د 789",trailer:"م 101",cube:18,driver_id:null}]};
   let seq=1;const der=e=>{const q=(e.trips||0)*(e.cubic||0)-(e.deduction||0);e.quantity=q;e.value=q*(e.price||0);e.net=e.value-(e.payments||0);return e;};
   ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,...e})));let aseq=100;
   class Q{constructor(t){this.t=t;this.f=[];this.op="select";}
@@ -352,7 +375,7 @@ function demoClient(){
     insert(row){this.op="insert";this.row=row;return this} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
     run(){const T=DB[this.t];
       if(this.op==="insert"){if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
-        const r={id:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
+        const r={id:this.t==="ezz_vehicles"?T.length+1:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
         if(this.t==="ezz_accounts")r.code=String(codes[r.type]+(cnt[r.type]=(cnt[r.type]||0)+1));
         if(this.t==="ezz_entries")der(r);T.push(r);return {data:[r],error:null};}
       if(this.op==="update"){T.filter(r=>this.f.every(f=>f(r))).forEach(r=>{Object.assign(r,this.p);if(this.t==="ezz_entries")der(r);});return {error:null};}
@@ -378,7 +401,10 @@ function msg(id,t,ok){const m=$(id);m.textContent=t;m.className="msg "+(ok?"ok":
 const TYPES={"سواق":"مورد","محجر":"مورد","عميل محجر":"عميل","عميل شركة":"عميل"};
 const CATTYPES={"مورد":["سواق","محجر"],"عميل":["عميل محجر","عميل شركة"]};
 const PLURAL={"سواق":"سواقين","محجر":"محاجر","عميل محجر":"عملاء محاجر","عميل شركة":"عملاء شركات"};
-let accounts=[], entries=[], isAdmin=false;
+let accounts=[], entries=[], vehicles=[], vehReady=true, isAdmin=false;
+const normPlate=s=>String(s||"").replace(/\s+/g," ").trim();
+const vehOf=p=>vehicles.find(v=>normPlate(v.plate)===normPlate(p));
+const vcode=v=>"ج-"+String(v.id).padStart(3,"0");
 const accById=id=>accounts.find(a=>a.id===id)||{};
 const lbl=a=>(a.code?a.code+" - ":"")+(a.name||"");
 const catOf=e=>TYPES[accById(e.account_id).type];
@@ -394,6 +420,8 @@ async function loadAll(){
     if(error){alert("مشكلة في تحميل الحركات: "+error.message);break;}
     all=all.concat(data); if(data.length<1000)break; from+=1000;}
   entries=all.map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
+  const {data:vs,error:e3}=await sb.from("ezz_vehicles").select("*");
+  vehReady=!e3; vehicles=(vs||[]).map(v=>({...v,cube:v.cube==null?null:+v.cube})).sort((a,b)=>a.id-b.id);
   fillSelects(); fillDatalists();
 }
 const balBefore=(id,d)=>(+accById(id).opening_balance||0)+entries.filter(e=>e.account_id===id&&e.entry_date<d).reduce((s,e)=>s+e.net,0);
@@ -411,13 +439,14 @@ function fillSelects(){
   document.querySelectorAll(".accSel").forEach(s=>{const v=s.value;s.innerHTML=optionsFor(s.dataset.cat||"",s.id==="r_acc");s.value=v;});
 }
 function fillDatalists(){
+  $("vehList").innerHTML=vehicles.map(v=>`<option value="${esc(v.plate)}">${esc((v.trailer?"مقطورة "+v.trailer+" · ":"")+(v.cube?v.cube+" متر":""))}</option>`).join("");
   const cs=new Set(),co=new Set();entries.forEach(r=>{if(r.contractor)cs.add(r.contractor);if(r.company)co.add(r.company);});
   $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join("");$("companies").innerHTML=[...co].map(x=>`<option value="${esc(x)}">`).join("");
 }
 
 /* ---------- navigation ---------- */
-const TITLES={home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",bal:"ملخص الأرصدة",users:"المستخدمين"};
-const VIEW={home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",bal:"bal",users:"users"};
+const TITLES={veh:"الجرارات والتكعيب",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",bal:"ملخص الأرصدة",users:"المستخدمين"};
+const VIEW={veh:"veh",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",bal:"bal",users:"users"};
 let tab="home";
 function side(o){document.body.classList.toggle("side-open",o);$("scrim").hidden=!o;}
 $("menuBtn").onclick=()=>side(true);$("scrim").onclick=()=>side(false);
@@ -435,6 +464,7 @@ function go(t,opts={}){
   if(t==="profit")renderProfit();
   if(t==="bal")renderBal();
   if(t==="users")loadMembers();
+  if(t==="veh")setupVeh();
   window.scrollTo(0,0);
 }
 
@@ -455,7 +485,7 @@ function renderHome(){
   $("homeRecent").innerHTML=recentTable(entries.slice().sort((a,b)=>b.id-a.id).slice(0,10),false);
 }
 function recentTable(rows,del){
-  return "<tr><th>التاريخ</th><th>الحساب</th><th></th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th>"+(del?"<th></th>":"")+"</tr>"+
+  return "<tr><th>التاريخ</th><th>الحساب</th><th></th><th>الجرار</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th>"+(del?"<th></th>":"")+"</tr>"+
    (rows.map(r=>{const a=accById(r.account_id),c=TYPES[a.type];return `<tr><td class="num">${r.entry_date}</td><td>${esc(lbl(a))}</td><td><span class="pill ${c==="مورد"?"sup":"cus"}">${c||""}</span></td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.cubic)}</td><td class="num">${r.deduction||""}</td>
     <td class="num">${isTrip(r)?N(r.quantity):""}</td><td class="num">${N(r.price)}</td><td class="num">${isTrip(r)?fmt(r.value):""}</td><td class="num">${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td>
     ${del?`<td><button class="btn danger" onclick="delEntry(${r.id})">مسح</button></td>`:""}</tr>`;}).join("")||'<tr><td colspan="14">لسه مفيش حركات</td></tr>');
@@ -469,8 +499,19 @@ function calcEntry(){
   $("e_qty").value=t!=null?N(q):"";$("e_value").value=t!=null?fmt(v):"";$("e_net").value=fmt(v-pay);
 }
 ["e_trips","e_cubic","e_ded","e_price","e_pay"].forEach(i=>$(i).addEventListener("input",calcEntry));
+let autoCube=null;
+function vehFill(){
+  const v=vehOf($("e_vehicle").value);
+  if(v){ if(v.trailer!=null&&v.trailer!=="")$("e_trailer").value=v.trailer;
+    if(v.cube!=null&&($("e_cubic").value===""||+$("e_cubic").value===autoCube)){$("e_cubic").value=v.cube;autoCube=v.cube;}
+    $("vehHint").textContent="جرار مكود "+vcode(v)+(v.cube?" · تكعيب "+v.cube+" متر":"");}
+  else $("vehHint").textContent=$("e_vehicle").value.trim()?"جرار جديد، هيتكود لوحده لما تحفظ":"";
+  calcEntry();
+}
+$("e_vehicle").addEventListener("input",vehFill);$("e_vehicle").addEventListener("change",vehFill);
 $("e_acc").addEventListener("change",()=>{
   const id=+$("e_acc").value;if(!id)return;
+  if(!$("e_vehicle").value){const dv=vehicles.find(v=>v.driver_id===id);if(dv){$("e_vehicle").value=dv.plate;vehFill();}}
   const r=entries.filter(e=>e.account_id===id&&isTrip(e)).sort((a,b)=>b.id-a.id)[0];
   if(r)[["e_vehicle","vehicle"],["e_trailer","trailer"],["e_cubic","cubic"],["e_price","price"],["e_contractor","contractor"],["e_company","company"]].forEach(([i,k])=>{if(!$(i).value&&r[k]!=null)$(i).value=r[k];});
   calcEntry();
@@ -484,8 +525,16 @@ $("saveEntry").onclick=async()=>{
   const b=$("saveEntry");b.disabled=true;
   const {error}=await sb.from("ezz_entries").insert(row);b.disabled=false;
   if(error)return msg("entryMsg","متحفظتش: "+error.message,false);
+  let extra="";
+  const plate=normPlate(row.vehicle);
+  if(plate&&vehReady&&!vehOf(plate)&&row.trips!=null){
+    const a=accById(row.account_id);
+    const {error:ve}=await sb.from("ezz_vehicles").insert({plate,trailer:normPlate(row.trailer)||null,cube:row.cubic,driver_id:a.type==="سواق"?a.id:null});
+    if(!ve)extra=" · الجرار "+plate+" اتكود بتكعيب "+(row.cubic??"-");
+  }
+  autoCube=null;$("vehHint").textContent="";
   ["e_bon","e_trips","e_ded","e_pay","e_notes","e_qty","e_value","e_net"].forEach(i=>$(i).value="");
-  msg("entryMsg","تم الحفظ",true);await loadAll();renderRecent();
+  msg("entryMsg","تم الحفظ"+extra,true);await loadAll();renderRecent();
 };
 function renderRecent(){$("recent").innerHTML=recentTable(entries.slice().sort((a,b)=>b.id-a.id).slice(0,30),true);}
 async function delEntry(id){
@@ -525,6 +574,51 @@ async function editOpening(id){
   if(error)return alert(error.message);await loadAll();renderAccTable();
 }
 
+/* ---------- vehicles ---------- */
+function setupVeh(){
+  $("v_driver").innerHTML='<option value="">بدون</option>'+accounts.filter(a=>a.type==="سواق").map(a=>`<option value="${a.id}">${esc(lbl(a))}</option>`).join("");
+  if(!$("vehMonth").value)$("vehMonth").value=today().slice(0,7);
+  if(!vehReady){$("vehTable").innerHTML='<tr><td>جدول الجرارات لسه متعملش في قاعدة البيانات. الصق ملف schema_vehicles.sql في SQL Editor واضغط Run.</td></tr>';return;}
+  renderVeh();
+}
+$("vehSearch").oninput=()=>renderVeh();$("vehMonth").onchange=()=>renderVeh();
+$("v_plate").oninput=$("v_trailer").oninput=()=>{
+  const p=$("v_plate").value,t=normPlate($("v_trailer").value),vp=p&&vehOf(p),vt=t&&vehicles.find(v=>normPlate(v.trailer)===t);
+  $("v_dup").textContent=vp?"الجرار ده متكود قبل كده ("+vcode(vp)+")":vt?"المقطورة دي متسجلة مع جرار "+vt.plate:"";
+};
+function renderVeh(){
+  const q=normPlate($("vehSearch").value),m=$("vehMonth").value;
+  const rows=vehicles.filter(v=>!q||normPlate(v.plate).includes(q)||normPlate(v.trailer).includes(q));
+  $("vehTable").innerHTML="<tr><th>الكود</th><th>رقم الجرار</th><th>المقطورة</th><th>التكعيب (متر)</th><th>السواق</th><th>نقلات الشهر</th><th>كمية الشهر (متر)</th><th></th></tr>"+
+   (rows.map(v=>{const es=entries.filter(e=>isTrip(e)&&normPlate(e.vehicle)===normPlate(v.plate)&&e.entry_date.slice(0,7)===m&&catOf(e)==="عميل");
+     const d=v.driver_id?accById(v.driver_id):null;
+     return `<tr><td class="num"><b>${vcode(v)}</b></td><td><b>${esc(v.plate)}</b></td><td>${v.trailer?esc(v.trailer):"—"}</td><td class="num">${v.cube!=null?N(v.cube):'<span class="neg">لسه ما اتكتبش</span>'}</td><td>${d?esc(lbl(d)):"—"}</td>
+     <td class="num">${N(sum(es,"trips"))}</td><td class="num">${N(sum(es,"quantity"))}</td>
+     <td><button class="btn sm ghost" onclick="editVeh(${v.id},'cube')">تعديل التكعيب</button> <button class="btn sm ghost" onclick="editVeh(${v.id},'trailer')">المقطورة</button> <button class="btn sm ghost" onclick="editVeh(${v.id},'driver')">السواق</button> <button class="btn danger" onclick="delVeh(${v.id})">مسح</button></td></tr>`;}).join("")||'<tr><td colspan="8">لسه مفيش جرارات مكودة</td></tr>');
+}
+$("saveVeh").onclick=async()=>{
+  const plate=normPlate($("v_plate").value);if(!plate)return msg("vehMsg","اكتب رقم الجرار",false);
+  if(vehOf(plate))return msg("vehMsg","الجرار ده متكود قبل كده",false);
+  const {error}=await sb.from("ezz_vehicles").insert({plate,trailer:normPlate($("v_trailer").value)||null,cube:$("v_cube").value===""?null:+$("v_cube").value,driver_id:+$("v_driver").value||null,notes:$("v_notes").value||null});
+  if(error)return msg("vehMsg",error.code==="23505"?"الجرار ده متكود قبل كده":error.message,false);
+  ["v_plate","v_trailer","v_cube","v_notes"].forEach(i=>$(i).value="");$("v_driver").value="";$("v_dup").textContent="";
+  await loadAll();msg("vehMsg","تم تكويد الجرار "+plate,true);renderVeh();
+};
+async function editVeh(id,field){
+  const v=vehicles.find(x=>x.id===id);let p={};
+  if(field==="cube"){const c=prompt("التكعيب للجرار "+v.plate+" (متر):",v.cube??"");if(c===null)return;p.cube=c.trim()===""?null:+c;}
+  if(field==="trailer"){const t=prompt("رقم المقطورة للجرار "+v.plate+" (سيبه فاضي لو مفيش):",v.trailer||"");if(t===null)return;p.trailer=normPlate(t)||null;}
+  if(field==="driver"){const list=accounts.filter(a=>a.type==="سواق");const c=prompt("اكتب كود أو اسم السواق للجرار "+v.plate+" (سيبه فاضي لو مفيش):\n"+list.map(lbl).join("\n"),v.driver_id?lbl(accById(v.driver_id)):"");if(c===null)return;
+    const t=c.trim();const a=t?list.find(x=>x.code===t||x.name===t||lbl(x)===t):null;if(t&&!a)return alert("مش لاقي السواق ده");p.driver_id=a?a.id:null;}
+  const {error}=await sb.from("ezz_vehicles").update(p).eq("id",id);if(error)return alert(error.message);
+  await loadAll();renderVeh();
+}
+async function delVeh(id){
+  const v=vehicles.find(x=>x.id===id);if(!confirm("تمسح تكويد الجرار "+v.plate+"؟ النقلات المتسجلة بيه مش هتتمسح."))return;
+  const {error}=await sb.from("ezz_vehicles").delete().eq("id",id);if(error)return alert(error.message);
+  await loadAll();renderVeh();
+}
+
 /* ---------- statement ---------- */
 let stCat="عميل";
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>setupSt(b.dataset.cat));
@@ -554,7 +648,7 @@ function renderSt(){
   const meaning=kind==="مورد"?(final>=0?"مستحق للمورد عندنا":"مستحق لينا عند المورد"):(final>=0?"مستحق لينا عند العميل":"مستحق للعميل عندنا");
   $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">كشف حساب ${kind} أسبوعي</div></div>
    <div class="kv"><div>الكود<b class="num">${esc(a.code||"")}</b></div><div>اسم ال${kind}<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b class="num">${$("s_calc").value}</b></div><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
-   <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>السيارة</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
+   <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>الجرار</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
    <tbody>${body||'<tr><td colspan="16">مفيش حركات في الأسبوع ده</td></tr>'}</tbody>
    <tfoot><tr><td colspan="5">الإجمالي</td><td class="num">${N(T.trips)}</td><td></td><td></td><td class="num">${N(T.qty)}</td><td></td><td class="num">${fmt(T.val)}</td><td class="num">${fmt(T.pay)}</td><td${cls(T.net)}>${fmt(T.net)}</td><td></td><td></td><td></td></tr></tfoot></table></div>
    <div class="kv"><div>الرصيد السابق<b class="num">${fmt(prev)}</b></div><div>إجمالي القيمة<b class="num">${fmt(T.val)}</b></div><div>إجمالي الدفعات<b class="num">${fmt(T.pay)}</b></div><div>صافي الأسبوع<b class="num">${fmt(T.net)}</b></div>
@@ -601,7 +695,7 @@ function renderReg(){
    <h3>${word} حسب ${regCat==="مورد"?"المورد":"العميل"}</h3><div class="tw"><table><thead><tr><th>الكود</th><th>الاسم</th><th>النوع</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>الرصيد الحالي</th></tr></thead><tbody>
    ${ids.map(id=>{const a=accById(id),g=by[id]||{trips:0,qty:0,val:0},b=balNow(id);return `<tr><td class="num">${esc(a.code)}</td><td>${esc(a.name)}</td><td>${a.type}</td><td class="num">${N(g.trips)}</td><td class="num">${N(g.qty)}</td><td class="num">${fmt(g.val)}</td><td class="num">${fmt(pays[id]||0)}</td><td${cls(b)}>${fmt(b)}</td></tr>`;}).join("")||'<tr><td colspan="8">مفيش حركات في الفترة دي</td></tr>'}
    </tbody></table></div></div>
-   <div class="card"><h3>كل الحركات</h3><div class="tw"><table><thead><tr><th>التاريخ</th><th>الحساب</th><th>السيارة</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th></tr></thead><tbody>
+   <div class="card"><h3>كل الحركات</h3><div class="tw"><table><thead><tr><th>التاريخ</th><th>الحساب</th><th>الجرار</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th></tr></thead><tbody>
    ${rows.map(r=>`<tr><td class="num">${r.entry_date}</td><td>${esc(lbl(accById(r.account_id)))}</td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.cubic)}</td><td class="num">${r.deduction||""}</td><td class="num">${isTrip(r)?N(r.quantity):""}</td><td class="num">${N(r.price)}</td><td class="num">${isTrip(r)?fmt(r.value):""}</td><td class="num">${r.payments?fmt(r.payments):""}</td></tr>`).join("")||'<tr><td colspan="11">مفيش حركات</td></tr>'}
    </tbody><tfoot><tr><td colspan="4">الإجمالي</td><td class="num">${N(sum(trips,"trips"))}</td><td></td><td></td><td class="num">${N(sum(trips,"quantity"))}</td><td></td><td class="num">${fmt(sum(trips,"value"))}</td><td class="num">${fmt(sum(rows,"payments"))}</td></tr></tfoot></table></div></div>`;
 }

@@ -126,3 +126,17 @@ update public.ezz_accounts a set code = sub.c from (
   select id, (ezz_code_base(type) + row_number() over (partition by type order by id))::text c
   from public.ezz_accounts where code is null) sub
 where a.id = sub.id;
+-- تكويد الجرارات بالتكعيب (زي برنامج الكسارة)
+create table if not exists public.ezz_vehicles (
+  id bigint generated always as identity primary key,
+  plate text not null unique,
+  trailer text,
+  cube numeric(10,2),
+  driver_id bigint references public.ezz_accounts(id) on delete set null,
+  notes text,
+  created_at timestamptz not null default now()
+);
+alter table public.ezz_vehicles enable row level security;
+drop policy if exists ezz_vehicles_auth on public.ezz_vehicles;
+create policy ezz_vehicles_auth on public.ezz_vehicles for all to authenticated using (ezz_is_member()) with check (ezz_is_member());
+revoke all on public.ezz_vehicles from anon;
