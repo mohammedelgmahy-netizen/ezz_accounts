@@ -92,6 +92,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 #instHelp{position:fixed;inset:0;background:rgb(0 0 0/.5);z-index:40;display:grid;place-items:center;padding:20px}
 #instHelp .card{max-width:380px;margin:0}
 .demobar{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:8px 12px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700}
+.cosel{padding:0 14px 10px}.cosel label{font-size:12px;color:var(--muted)}.cosel select{width:100%;margin-top:4px;font-weight:700}
 #waModal{position:fixed;inset:0;background:rgb(10 20 30/.6);z-index:50;display:grid;place-items:center;padding:16px}
 #waModal .card{width:min(420px,100%);text-align:center;display:flex;flex-direction:column;gap:8px;margin:0;max-height:90vh;overflow:auto}
 #waModal img{max-width:100%;border:1px solid var(--line);border-radius:8px;max-height:45vh;object-fit:contain;background:#fff}
@@ -133,7 +134,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
   <div class="card">
     <img class="logo" src="icon-192.png" alt="">
     <h2>تسجيل الدخول</h2>
-    <div class="hint" style="margin:0">عز الدين للمقاولات العامة والتوريدات. البيانات محفوظة أونلاين.</div>
+    <div class="hint" style="margin:0">كشوف حساب الموردين والعملاء الأسبوعية. البيانات محفوظة أونلاين.</div>
     <form id="loginForm">
       <label>الإيميل<input id="email" type="email" autocomplete="username" required></label>
       <label>كلمة السر<input id="pass" type="password" autocomplete="current-password" required></label>
@@ -148,6 +149,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 <div class="shell" id="app" hidden>
   <aside id="side">
     <div class="sbrand"><img class="logo" src="icon-192.png" alt=""><div id="coSide"><b>عز الدين للمقاولات</b><small>العامة والتوريدات</small></div></div>
+    <div class="cosel" id="coSelWrap" hidden><label>الشركة<select id="coSel"></select></label></div>
     <nav id="tabs">
       <div class="grp">الرئيسية</div>
       <button data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>الرئيسية</span></button>
@@ -322,17 +324,25 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     <!-- المستخدمين -->
     <section id="v-users" hidden>
       <div class="card">
-        <h3>المستخدمين المسموح لهم يدخلوا البرنامج</h3>
-        <p class="hint">ضيف إيميل الشخص هنا، وبعدين هو يعمل «حساب جديد» بنفس الإيميل من شاشة الدخول.</p>
+        <h3>مديرين البرنامج</h3>
+        <p class="hint">دول بيشوفوا كل الشركات. ضيف هنا ناسك انت بس، وموظفين أي شركة ضيفهم من «موظفين الشركة دي» تحت.</p>
         <div class="tw"><table id="memTable"></table></div>
         <div class="row"><label style="min-width:240px">إيميل مستخدم جديد<input id="m_email" type="email"></label><button class="btn primary" id="addMem">إضافة مستخدم</button></div>
         <div id="memMsg" class="msg" hidden></div>
       </div>
       <div class="card">
-        <h3>اسم الشركة</h3>
-        <p class="hint">الاسم اللي بيظهر في راس الكشوف والطباعة وصور الواتساب. بيتحفظ على الجهاز ده.</p>
-        <div class="row" style="margin-top:0"><input id="coName" style="flex:1;min-width:220px"><button class="btn primary" id="coSave">حفظ الاسم</button><button class="btn ghost" id="coReset">رجّع الاسم الأصلي</button></div>
+        <h3>الشركات</h3>
+        <p class="hint">كل شركة ليها موردينها وعملائها وجراراتها وكشوفها لوحدها. بتختار الشركة اللي شغال عليها من القائمة اللي فوق في الجنب، واسمها هو اللي بيظهر في الطباعة وصور الواتساب.</p>
+        <div class="tw"><table id="coTable"></table></div>
+        <div class="row" id="coAddRow"><label style="flex:1;min-width:220px">اسم شركة جديدة<input id="coName" placeholder="مثلاً: شركة العاصم للمقاولات العمومية"></label><button class="btn primary" id="coAdd">إضافة شركة</button></div>
         <div id="coMsg" class="msg" hidden></div>
+      </div>
+      <div class="card" id="cuCard">
+        <h3>موظفين الشركة دي</h3>
+        <p class="hint">لو أجّرت البرنامج لشركة، ضيف إيميلات موظفينها هنا وهما يعملوا «حساب جديد» بنفس الإيميل. هيشوفوا الشركة دي بس ومش هيشوفوا أي شركة تانية.</p>
+        <div class="tw"><table id="cuTable"></table></div>
+        <div class="row"><label style="min-width:240px">إيميل الموظف<input id="cu_email" type="email"></label><label style="min-width:140px">الصلاحية<select id="cu_admin"><option value="0">مستخدم</option><option value="1">مدير الشركة</option></select></label><button class="btn primary" id="cuAdd">إضافة</button></div>
+        <div id="cuMsg" class="msg" hidden></div>
       </div>
       <div class="card">
         <h3>بيانات تجريبية</h3>
@@ -389,16 +399,18 @@ function demoData(){
 }
 function demoClient(){
   const {acc,ent}=demoData(),codes={"عميل شركة":11000,"عميل محجر":12000,"سواق":21000,"محجر":22000},cnt={};
-  const DB={ezz_accounts:acc.map((a,i)=>({id:i+1,code:String(codes[a.type]+(cnt[a.type]=(cnt[a.type]||0)+1)),...a})),ezz_entries:[],ezz_members:[{email:"تجربة",is_admin:true,created_at:1}],ezz_vehicles:[{id:1,plate:"ط ق ن 123",trailer:"م 456",cube:20,driver_id:1},{id:2,plate:"ر س م 852",trailer:"م 741",cube:21,driver_id:2},{id:3,plate:"س ع د 789",trailer:"م 101",cube:18,driver_id:null}]};
+  const DB={ezz_accounts:acc.map((a,i)=>({id:i+1,code:String(codes[a.type]+(cnt[a.type]=(cnt[a.type]||0)+1)),...a})),ezz_entries:[],ezz_members:[{email:"تجربة",is_admin:true,created_at:1}],ezz_vehicles:[{id:1,plate:"ط ق ن 123",trailer:"م 456",cube:20,driver_id:1},{id:2,plate:"ر س م 852",trailer:"م 741",cube:21,driver_id:2},{id:3,plate:"س ع د 789",trailer:"م 101",cube:18,driver_id:null}],ezz_companies:[{id:1,name:"عز الدين للمقاولات العامة والتوريدات"}],ezz_company_users:[]};
+  ["ezz_accounts","ezz_vehicles"].forEach(t=>DB[t].forEach(r=>r.company_id=1));
   let seq=1;const der=e=>{const q=(e.trips||0)*(e.cubic||0)-(e.deduction||0);e.quantity=q;e.value=q*(e.price||0);e.net=e.value-(e.payments||0);return e;};
-  ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,...e})));let aseq=100;
+  ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,company_id:1,...e})));let aseq=100;
   class Q{constructor(t){this.t=t;this.f=[];this.op="select";}
     select(){return this} order(){return this} range(a,b){this.r=[a,b];return this} eq(k,v){this.f.push(r=>r[k]==v);return this}
     insert(row){this.op="insert";this.row=row;return this} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
     run(){const T=DB[this.t];
       if(this.op==="insert"&&Array.isArray(this.row)){const out=[];for(const row of this.row){const q=new Q(this.t);q.op="insert";q.row=row;const r=q.run();if(r.error)return r;out.push(...r.data);}return {data:out,error:null};}
-      if(this.op==="insert"){if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
-        const r={id:this.t==="ezz_vehicles"?T.length+1:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
+      if(this.op==="insert"){if(this.t==="ezz_companies"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
+        if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name&&a.company_id===this.row.company_id))return {error:{code:"23505",message:"dup"}};
+        const r={id:this.t==="ezz_vehicles"||this.t==="ezz_companies"?T.length+1:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
         if(this.t==="ezz_accounts")r.code=String(codes[r.type]+(cnt[r.type]=(cnt[r.type]||0)+1));
         if(this.t==="ezz_entries")der(r);T.push(r);return {data:[r],error:null};}
       if(this.op==="update"){T.filter(r=>this.f.every(f=>f(r))).forEach(r=>{Object.assign(r,this.p);if(this.t==="ezz_entries")der(r);});return {error:null};}
@@ -410,7 +422,13 @@ function demoClient(){
 const DEMO=location.hash==="#demo";
 const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"ezz_auth"}});
 const $=id=>document.getElementById(id);
-let CO=(()=>{try{return localStorage.getItem("ezz_co_name")}catch(e){return null}})()||"عز الدين للمقاولات العامة والتوريدات";
+/* ---------- الشركات: كل شركة بحساباتها لوحدها ---------- */
+let CID=null,companies=[],coReady=false,isOwner=false,myEmail="";
+const SCOPED=new Set(["ezz_accounts","ezz_entries","ezz_vehicles"]);
+function T(t){const q=sb.from(t);if(!SCOPED.has(t)||!coReady||CID==null)return q;
+  const tag=r=>Array.isArray(r)?r.map(x=>({...x,company_id:CID})):{...r,company_id:CID};
+  return {select:(...a)=>q.select(...a).eq("company_id",CID),insert:r=>q.insert(tag(r)),update:p=>q.update(p).eq("company_id",CID),delete:()=>q.delete().eq("company_id",CID)};}
+let CO="عز الدين للمقاولات العامة والتوريدات";
 const fmt=n=>(n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const N=v=>v==null||v===""?"":Number(v).toLocaleString("en-US",{maximumFractionDigits:2});
 const cls=n=>Number(n)<0?' class="neg num"':' class="num"';
@@ -439,15 +457,15 @@ const isTrip=e=>e.trips!=null;
 
 /* ---------- data ---------- */
 async function loadAll(){
-  const {data:acc,error:e1}=await sb.from("ezz_accounts").select("*");
+  const {data:acc,error:e1}=await T("ezz_accounts").select("*");
   if(e1){alert("مشكلة في تحميل الحسابات: "+e1.message);return;}
   accounts=acc.sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
   let all=[],from=0;
-  for(;;){const {data,error}=await sb.from("ezz_entries").select("*").order("id").range(from,from+999);
+  for(;;){const {data,error}=await T("ezz_entries").select("*").order("id").range(from,from+999);
     if(error){alert("مشكلة في تحميل الحركات: "+error.message);break;}
     all=all.concat(data); if(data.length<1000)break; from+=1000;}
   entries=all.map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
-  const {data:vs,error:e3}=await sb.from("ezz_vehicles").select("*");
+  const {data:vs,error:e3}=await T("ezz_vehicles").select("*");
   vehReady=!e3; vehicles=(vs||[]).map(v=>({...v,cube:v.cube==null?null:+v.cube})).sort((a,b)=>a.id-b.id);
   fillSelects(); fillDatalists();
 }
@@ -491,7 +509,7 @@ function go(t,opts={}){
   if(t==="purch"||t==="sales")setupReg(t==="purch"?"مورد":"عميل");
   if(t==="profit")renderProfit();
   if(t==="bal")renderBal();
-  if(t==="users")loadMembers();
+  if(t==="users"){loadMembers();renderCompanies();}
   if(t==="veh")setupVeh();
   window.scrollTo(0,0);
 }
@@ -553,14 +571,14 @@ $("saveEntry").onclick=async()=>{
     payments:num("e_pay")||0,contractor:$("e_contractor").value||null,company:$("e_company").value||null,notes:$("e_notes").value||null};
   const b=$("saveEntry");b.disabled=true;
   const editing=editId;
-  const {error}=editing?await sb.from("ezz_entries").update(row).eq("id",editing):await sb.from("ezz_entries").insert(row);b.disabled=false;
+  const {error}=editing?await T("ezz_entries").update(row).eq("id",editing):await T("ezz_entries").insert(row);b.disabled=false;
   if(error)return msg("entryMsg","متحفظتش: "+error.message,false);
   if(editing){endEdit(true);msg("entryMsg","تم حفظ التعديل",true);await loadAll();renderRecent();return;}
   let extra="";
   const plate=normPlate(row.vehicle);
   if(plate&&vehReady&&!vehOf(plate)&&row.trips!=null){
     const a=accById(row.account_id);
-    const {error:ve}=await sb.from("ezz_vehicles").insert({plate,trailer:normPlate(row.trailer)||null,cube:row.cubic,driver_id:a.type==="سواق"?a.id:null});
+    const {error:ve}=await T("ezz_vehicles").insert({plate,trailer:normPlate(row.trailer)||null,cube:row.cubic,driver_id:a.type==="سواق"?a.id:null});
     if(!ve)extra=" · الجرار "+plate+" اتكود بتكعيب "+(row.cubic??"-");
   }
   autoCube=null;$("vehHint").textContent="";
@@ -588,7 +606,7 @@ $("cancelEdit").onclick=()=>endEdit(false);
 function renderRecent(){$("recent").innerHTML=recentTable(entries.slice().sort((a,b)=>b.id-a.id).slice(0,30),true);}
 async function delEntry(id){
   if(!confirm("متأكد إنك عايز تمسح الحركة دي؟ ده هيغيّر الأرصدة."))return;
-  const {error}=await sb.from("ezz_entries").delete().eq("id",id);if(error)return alert(error.message);
+  const {error}=await T("ezz_entries").delete().eq("id",id);if(error)return alert(error.message);
   await loadAll();renderRecent();
 }
 
@@ -626,21 +644,21 @@ $("saveAcc").onclick=async()=>{
   const name=$("a_name").value.trim();if(!name)return msg("accMsg","اكتب اسم الحساب",false);
   if(accEditId){
     let row={name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null,company:$("a_company").value.trim()||null};
-    let {error}=await sb.from("ezz_accounts").update(row).eq("id",accEditId);
-    if(error&&noCompanyCol(error)){delete row.company;({error}=await sb.from("ezz_accounts").update(row).eq("id",accEditId));if(!error){accFormReset();await loadAll();renderAccTable();return msg("accMsg",COL_MSG,false);}}
+    let {error}=await T("ezz_accounts").update(row).eq("id",accEditId);
+    if(error&&noCompanyCol(error)){delete row.company;({error}=await T("ezz_accounts").update(row).eq("id",accEditId));if(!error){accFormReset();await loadAll();renderAccTable();return msg("accMsg",COL_MSG,false);}}
     if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل لحساب تاني":error.message,false);
     accFormReset();msg("accMsg","تم حفظ التعديل",true);await loadAll();renderAccTable();return;
   }
   let row={name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null,company:$("a_company").value.trim()||null};
-  let {data,error}=await sb.from("ezz_accounts").insert(row).select();
-  if(error&&noCompanyCol(error)){delete row.company;({data,error}=await sb.from("ezz_accounts").insert(row).select());}
+  let {data,error}=await T("ezz_accounts").insert(row).select();
+  if(error&&noCompanyCol(error)){delete row.company;({data,error}=await T("ezz_accounts").insert(row).select());}
   if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
   ["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;$("a_company").value="";
   msg("accMsg","تم إضافة الحساب"+(data&&data[0]&&data[0].code?" بكود "+data[0].code:""),true);await loadAll();renderAccTable();
 };
 async function editOpening(id){
   const a=accById(id);const v=prompt("الرصيد الافتتاحي لـ "+a.name,a.opening_balance);if(v===null)return;
-  const {error}=await sb.from("ezz_accounts").update({opening_balance:+v||0}).eq("id",id);
+  const {error}=await T("ezz_accounts").update({opening_balance:+v||0}).eq("id",id);
   if(error)return alert(error.message);await loadAll();renderAccTable();
 }
 
@@ -669,7 +687,7 @@ function renderVeh(){
 $("saveVeh").onclick=async()=>{
   const plate=normPlate($("v_plate").value);if(!plate)return msg("vehMsg","اكتب رقم الجرار",false);
   if(vehOf(plate))return msg("vehMsg","الجرار ده متكود قبل كده",false);
-  const {error}=await sb.from("ezz_vehicles").insert({plate,trailer:normPlate($("v_trailer").value)||null,cube:$("v_cube").value===""?null:+$("v_cube").value,driver_id:+$("v_driver").value||null,notes:$("v_notes").value||null});
+  const {error}=await T("ezz_vehicles").insert({plate,trailer:normPlate($("v_trailer").value)||null,cube:$("v_cube").value===""?null:+$("v_cube").value,driver_id:+$("v_driver").value||null,notes:$("v_notes").value||null});
   if(error)return msg("vehMsg",error.code==="23505"?"الجرار ده متكود قبل كده":error.message,false);
   ["v_plate","v_trailer","v_cube","v_notes"].forEach(i=>$(i).value="");$("v_driver").value="";$("v_dup").textContent="";
   await loadAll();msg("vehMsg","تم تكويد الجرار "+plate,true);renderVeh();
@@ -680,12 +698,12 @@ async function editVeh(id,field){
   if(field==="trailer"){const t=prompt("رقم المقطورة للجرار "+v.plate+" (سيبه فاضي لو مفيش):",v.trailer||"");if(t===null)return;p.trailer=normPlate(t)||null;}
   if(field==="driver"){const list=accounts.filter(a=>a.type==="سواق");const c=prompt("اكتب كود أو اسم السواق للجرار "+v.plate+" (سيبه فاضي لو مفيش):\n"+list.map(lbl).join("\n"),v.driver_id?lbl(accById(v.driver_id)):"");if(c===null)return;
     const t=c.trim();const a=t?list.find(x=>x.code===t||x.name===t||lbl(x)===t):null;if(t&&!a)return alert("مش لاقي السواق ده");p.driver_id=a?a.id:null;}
-  const {error}=await sb.from("ezz_vehicles").update(p).eq("id",id);if(error)return alert(error.message);
+  const {error}=await T("ezz_vehicles").update(p).eq("id",id);if(error)return alert(error.message);
   await loadAll();renderVeh();
 }
 async function delVeh(id){
   const v=vehicles.find(x=>x.id===id);if(!confirm("تمسح تكويد الجرار "+v.plate+"؟ النقلات المتسجلة بيه مش هتتمسح."))return;
-  const {error}=await sb.from("ezz_vehicles").delete().eq("id",id);if(error)return alert(error.message);
+  const {error}=await T("ezz_vehicles").delete().eq("id",id);if(error)return alert(error.message);
   await loadAll();renderVeh();
 }
 
@@ -849,10 +867,10 @@ $("seedDemo").onclick=async()=>{
   if(accounts.some(a=>a.notes===DEMO_MARK))return msg("seedMsg","البيانات التجريبية موجودة بالفعل",false);
   const b=$("seedDemo");b.disabled=true;msg("seedMsg","بضيف البيانات...",true);
   const {acc,ent}=demoData();
-  const {data:ins,error}=await sb.from("ezz_accounts").insert(acc).select();
+  const {data:ins,error}=await T("ezz_accounts").insert(acc).select();
   if(error){b.disabled=false;return msg("seedMsg","مقدرتش أضيف الحسابات: "+(error.code==="23505"?"فيه حساب بنفس الاسم موجود":error.message),false);}
   const idOf=i=>ins.find(x=>x.name===acc[i].name).id;
-  const {error:e2}=await sb.from("ezz_entries").insert(ent.map(({acc:ai,...e})=>({...e,account_id:idOf(ai)})));
+  const {error:e2}=await T("ezz_entries").insert(ent.map(({acc:ai,...e})=>({...e,account_id:idOf(ai)})));
   b.disabled=false;if(e2)return msg("seedMsg","الحسابات اتضافت بس الحركات لأ: "+e2.message,false);
   await loadAll();msg("seedMsg","تمام، اتضاف "+acc.length+" حسابات و"+ent.length+" حركة. افتح الرئيسية أو كشف حساب وجرب.",true);
 };
@@ -860,8 +878,8 @@ $("clearDemo").onclick=async()=>{
   const ids=accounts.filter(a=>a.notes===DEMO_MARK).map(a=>a.id);
   if(!ids.length)return msg("seedMsg","مفيش بيانات تجريبية",false);
   if(!confirm("هتمسح كل الحسابات والحركات التجريبية. متأكد؟"))return;
-  for(const id of ids){const {error}=await sb.from("ezz_entries").delete().eq("account_id",id);if(error)return msg("seedMsg",error.message,false);}
-  for(const id of ids){const {error}=await sb.from("ezz_accounts").delete().eq("id",id);if(error)return msg("seedMsg",error.message,false);}
+  for(const id of ids){const {error}=await T("ezz_entries").delete().eq("account_id",id);if(error)return msg("seedMsg",error.message,false);}
+  for(const id of ids){const {error}=await T("ezz_accounts").delete().eq("id",id);if(error)return msg("seedMsg",error.message,false);}
   await loadAll();msg("seedMsg","اتمسحت البيانات التجريبية",true);
 };
 $("backup").onclick=()=>{
@@ -873,13 +891,46 @@ $("backup").onclick=()=>{
   const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([html],{type:"application/vnd.ms-excel"}));l.download="ezz-backup-"+today()+".xls";l.click();
 };
 
-const DEF_CO="عز الدين للمقاولات العامة والتوريدات",CO_KEY="ezz_co_name",SIDE0=$("coSide").innerHTML;
-function applyCo(){$("coSub").textContent=CO;$("coName").value=CO;
-  $("coSide").innerHTML=CO===DEF_CO?SIDE0:"<b>"+esc(CO)+"</b>";}
-applyCo();
-$("coSave").onclick=()=>{const v=$("coName").value.trim();if(!v)return msg("coMsg","اكتب اسم الشركة",false);
-  CO=v;try{localStorage.setItem(CO_KEY,v);}catch(e){}applyCo();msg("coMsg","تمام، الاسم اتغير وهيظهر في الكشوف والطباعة",true);};
-$("coReset").onclick=()=>{CO=DEF_CO;try{localStorage.removeItem(CO_KEY);}catch(e){}applyCo();msg("coMsg","رجع الاسم الأصلي",true);};
+const DEF_CO="عز الدين للمقاولات العامة والتوريدات",SIDE0=$("coSide").innerHTML;
+function applyCo(){const c=companies.find(x=>x.id===CID);CO=c?c.name:DEF_CO;$("coSub").textContent=CO;
+  $("coSide").innerHTML=CO===DEF_CO?SIDE0:"<b>"+esc(CO)+"</b>";
+  $("coSelWrap").hidden=!coReady||companies.length<2&&!isOwner;
+  $("coSel").innerHTML=companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")+(isOwner?'<option value="new">+ شركة جديدة</option>':"");
+  $("coSel").value=CID;}
+async function loadCompanies(){
+  const {data,error}=await sb.from("ezz_companies").select("*").order("id");
+  coReady=!error;companies=data||[];
+  if(!coReady){CID=null;return;}
+  let saved=null;try{saved=+localStorage.getItem("ezz_cid");}catch(e){}
+  CID=companies.some(c=>c.id===saved)?saved:(companies[0]?.id??null);
+}
+async function switchCo(id){CID=id;try{localStorage.setItem("ezz_cid",id);}catch(e){}applyCo();await loadAll();
+  const t=document.querySelector("#tabs button.on")?.dataset.tab||"home";go(t==="users"?"users":"home");}
+$("coSel").onchange=()=>{const v=$("coSel").value;if(v==="new"){$("coSel").value=CID;go("users");$("coName").focus();return;}switchCo(+v);};
+function renderCompanies(){
+  $("coAddRow").hidden=!isOwner||!coReady;
+  if(!coReady){$("coTable").innerHTML='<tr><td>علشان تقدر تضيف شركات، لازم ملف «شركات.sql» يتشغل على قاعدة البيانات مرة واحدة.</td></tr>';$("cuCard").hidden=true;return;}
+  $("cuCard").hidden=false;
+  $("coTable").innerHTML="<tr><th>الشركة</th><th></th></tr>"+companies.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.id===CID?' <span class="pill">الشغالة دلوقتي</span>':""}</td><td>${c.id!==CID?`<button class="btn sm primary" onclick="switchCo(${c.id})">افتحها</button> `:""}${isOwner?`<button class="btn sm ghost" onclick="renameCo(${c.id})">تغيير الاسم</button>`:""}</td></tr>`).join("");
+  loadCoUsers();
+}
+async function renameCo(id){const c=companies.find(x=>x.id===id);const v=prompt("اسم الشركة الجديد",c.name);if(!v||!v.trim())return;
+  const {error}=await sb.from("ezz_companies").update({name:v.trim()}).eq("id",id);if(error)return msg("coMsg",error.code==="23505"?"فيه شركة بنفس الاسم":error.message,false);
+  await loadCompanies();CID=id;applyCo();renderCompanies();msg("coMsg","تم تغيير الاسم",true);}
+$("coAdd").onclick=async()=>{const name=$("coName").value.trim();if(!name)return msg("coMsg","اكتب اسم الشركة",false);
+  const {data,error}=await sb.from("ezz_companies").insert({name}).select();
+  if(error)return msg("coMsg",error.code==="23505"?"الشركة دي موجودة قبل كده":error.message,false);
+  $("coName").value="";await loadCompanies();await switchCo(data[0].id);go("users");msg("coMsg","تم إضافة «"+name+"» وفتحتهالك. ابدأ ضيف الموردين والعملاء بتوعها.",true);};
+async function loadCoUsers(){
+  const {data}=await sb.from("ezz_company_users").select("*").eq("company_id",CID);
+  $("cuTable").innerHTML="<tr><th>الإيميل</th><th>الصلاحية</th><th></th></tr>"+((data||[]).map(u=>`<tr><td>${esc(u.email)}</td><td>${u.is_admin?"مدير الشركة":"مستخدم"}</td><td><button class="btn sm danger" onclick="delCoUser('${esc(u.email)}')">شيل</button></td></tr>`).join("")||'<tr><td colspan="3">لسه مفيش موظفين للشركة دي</td></tr>');
+}
+$("cuAdd").onclick=async()=>{const email=$("cu_email").value.trim().toLowerCase();if(!email)return msg("cuMsg","اكتب الإيميل",false);
+  const {error}=await sb.from("ezz_company_users").insert({company_id:CID,email,is_admin:$("cu_admin").value==="1"});
+  if(error)return msg("cuMsg",error.code==="23505"?"الإيميل ده متضاف قبل كده":"مدير البرنامج أو مدير الشركة بس اللي يضيف موظفين",false);
+  $("cu_email").value="";msg("cuMsg","تم. خليه يعمل «حساب جديد» بالإيميل ده من شاشة الدخول.",true);loadCoUsers();};
+async function delCoUser(email){if(!confirm("هتشيل "+email+" من الشركة دي؟"))return;
+  const {error}=await sb.from("ezz_company_users").delete().eq("company_id",CID).eq("email",email);if(error)return msg("cuMsg",error.message,false);loadCoUsers();}
 const BK_KEY="ezz_last_backup";
 function showLastBackup(){let d=null;try{d=localStorage.getItem(BK_KEY);}catch(e){}
   $("lastBackup").textContent=d?"آخر نسخة اتحفظت من الجهاز ده: "+d:"لسه متعملتش نسخة من الجهاز ده.";}
@@ -904,8 +955,8 @@ $("restoreFile").onchange=async ev=>{
   try{
     if(newAcc.length){
       let rows=newAcc.map(({id,...a})=>a);
-      let {error}=await sb.from("ezz_accounts").insert(rows);
-      if(error&&/company|code/.test(error.message||"")){rows=rows.map(({company,code,...a})=>a);({error}=await sb.from("ezz_accounts").insert(rows));}
+      let {error}=await T("ezz_accounts").insert(rows);
+      if(error&&/company|code/.test(error.message||"")){rows=rows.map(({company,code,...a})=>a);({error}=await T("ezz_accounts").insert(rows));}
       if(error)throw new Error("الحسابات: "+error.message);
       await loadAll();
     }
@@ -916,10 +967,10 @@ $("restoreFile").onchange=async ev=>{
     const have=new Set(entries.map(e=>key(e.account_id,e)));
     const add=[];for(const {id,account_id,quantity,value,net,created_at,created_by,...r} of d.entries){
       const acc=idByName[oldName[account_id]];if(!acc)continue;const k=key(acc,r);if(have.has(k))continue;have.add(k);add.push({...r,account_id:acc});}
-    for(let i=0;i<add.length;i+=500){const {error}=await sb.from("ezz_entries").insert(add.slice(i,i+500));if(error)throw new Error("الحركات: "+error.message);}
+    for(let i=0;i<add.length;i+=500){const {error}=await T("ezz_entries").insert(add.slice(i,i+500));if(error)throw new Error("الحركات: "+error.message);}
     let vAdd=0;
     if(vehReady&&Array.isArray(d.vehicles)){const vs=d.vehicles.filter(v=>!vehicles.some(x=>x.plate===v.plate)).map(({id,driver_id,...v})=>({...v,driver_id:idByName[oldName[driver_id]]||null}));
-      if(vs.length){const {error}=await sb.from("ezz_vehicles").insert(vs);if(!error)vAdd=vs.length;}}
+      if(vs.length){const {error}=await T("ezz_vehicles").insert(vs);if(!error)vAdd=vs.length;}}
     await loadAll();
     msg("backupMsg",`تم الاسترجاع: اتضاف ${newAcc.length} حساب و${add.length} حركة${vAdd?" و"+vAdd+" جرار":""}. اللي كان موجود فضل زي ما هو.`,true);
   }catch(e){msg("backupMsg","الاسترجاع وقف: "+e.message,false);}
@@ -952,7 +1003,9 @@ async function start(){
   if(rpcErr){$("gate").hidden=false;$("app").hidden=true;
     msg("loginMsg",/does not exist|Could not find|schema cache/i.test(rpcErr.message||"")?"قاعدة بيانات البرنامج ده لسه متجهزتش. الصق ملف SQL بتاعه في Supabase مرة واحدة وبعدين ادخل.":"مشكلة في الاتصال بقاعدة البيانات: "+rpcErr.message,false);return;}
   if(!ok){await sb.auth.signOut();$("gate").hidden=false;$("app").hidden=true;msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة المستخدمين.",false);return;}
-  $("gate").hidden=true;$("app").hidden=false;$("who").textContent=session.user.email;
+  $("gate").hidden=true;$("app").hidden=false;$("who").textContent=session.user.email;myEmail=(session.user.email||"").toLowerCase();
+  const {data:me}=await sb.from("ezz_members").select("email").eq("email",myEmail);isOwner=DEMO||!!(me&&me.length);
+  await loadCompanies();applyCo();
   $("e_date").value=today();
   await loadAll();go("home");
 }
