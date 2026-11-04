@@ -4,6 +4,8 @@ usage: make_copy.py SLUG PREFIX "الاسم الكامل" "سطر1" "سطر2" "�
 """
 import sys, os, re, shutil, subprocess, json
 slug, prefix, full, l1, l2, short, ibig, ismall = sys.argv[1:9]
+THEMES = {"green": {"#1a4266":"#174d3c","#1f4e78":"#1d6650","#e3ecf5":"#e0f0e9","#16324f":"#0f3a2e","#24527c":"#1f6b55","#1c3a5a":"#14493a","ICON1":"#1f6b55","ICON2":"#0b2a21"}}
+theme = THEMES.get(sys.argv[9]) if len(sys.argv) > 9 else None
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 out = os.path.join(root, slug); os.makedirs(out, exist_ok=True)
 s = open(os.path.join(root, "index.html"), encoding="utf-8").read()
@@ -12,10 +14,14 @@ s = s.replace("<b>عز الدين للمقاولات</b><small>العامة وا
 s = s.replace("<title>عز الدين للمقاولات</title>", f"<title>{short}</title>")
 s = s.replace("ezz-backup-", slug + "-backup-").replace('"ezz-"+', f'"{slug}-"+')
 s = s.replace("ezz_", prefix)
+if theme:
+    for a, b in theme.items():
+        if a.startswith("#"): s = s.replace(a, b)
 assert "عز الدين" not in s, [m.start() for m in re.finditer("عز الدين", s)]
 open(os.path.join(out, "index.html"), "w", encoding="utf-8").write(s)
 m = json.load(open(os.path.join(root, "manifest.json"), encoding="utf-8"))
 m.update(name=full, short_name=short)
+if theme: m.update(theme_color=theme["#1c3a5a"])
 json.dump(m, open(os.path.join(out, "manifest.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 shutil.copy(os.path.join(root, "sw.js"), out)
 sql = open(os.path.join(root, "schema.sql"), encoding="utf-8").read().replace("ezz_", prefix)
@@ -27,6 +33,7 @@ await p.setContent(`<html><body style="margin:0"><div style="width:${s}px;height
 <div style="font-size:${s*0.12}px;margin-top:${s*0.04}px">SMALL</div>
 <div style="width:${s*0.55}px;height:${s*0.025}px;background:#f2c14e;margin-top:${s*0.05}px;border-radius:4px"></div></div></body></html>`);
 await p.screenshot({path:`OUT/icon-${s}.png`});}await b.close();})();"""
+if theme: js = js.replace("#24527c", theme["ICON1"]).replace("#12283f", theme["ICON2"])
 js = js.replace("BIGSIZE", "0.42" if len(ibig) <= 2 else "0.3").replace("BIG", ibig).replace("SMALL", ismall).replace("OUT", out)
 subprocess.run(["node", "-e", js], check=True)
 print("done", out)
