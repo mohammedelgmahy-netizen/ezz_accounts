@@ -140,3 +140,6 @@ alter table public.ezz_vehicles enable row level security;
 drop policy if exists ezz_vehicles_auth on public.ezz_vehicles;
 create policy ezz_vehicles_auth on public.ezz_vehicles for all to authenticated using (ezz_is_member()) with check (ezz_is_member());
 revoke all on public.ezz_vehicles from anon;
+
+-- خانة الشركة لكل حساب
+alter table public.ezz_accounts add column if not exists company text;

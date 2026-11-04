@@ -92,6 +92,11 @@ tbody tr:nth-child(even) td{background:#faf8f2}
 #instHelp{position:fixed;inset:0;background:rgb(0 0 0/.5);z-index:40;display:grid;place-items:center;padding:20px}
 #instHelp .card{max-width:380px;margin:0}
 .demobar{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:8px 12px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700}
+#waModal{position:fixed;inset:0;background:rgb(10 20 30/.6);z-index:50;display:grid;place-items:center;padding:16px}
+#waModal .card{width:min(420px,100%);text-align:center;display:flex;flex-direction:column;gap:8px;margin:0;max-height:90vh;overflow:auto}
+#waModal img{max-width:100%;border:1px solid var(--line);border-radius:8px;max-height:45vh;object-fit:contain;background:#fff}
+#waModal .btn{justify-content:center;width:100%;padding:13px;font-size:17px}
+.btn.wa svg{flex:none}
 .pill{display:inline-block;padding:1px 10px;border-radius:999px;font-size:13px;background:var(--sunk)}
 .pill.sup{background:var(--warn-soft);color:var(--warn)}.pill.cus{background:var(--accent-soft);color:var(--accent-ink)}
 /* login */
@@ -158,7 +163,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <button data-tab="profit"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg><span>الأرباح</span></button>
       <button data-tab="bal"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></svg><span>ملخص الأرصدة</span></button>
       <div class="grp">أدوات</div>
-      <button data-tab="users"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>المستخدمين</span></button>
+      <button data-tab="users"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>الإعدادات والنسخ</span></button>
       <button id="logout"><svg viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l-5-5 5-5M5 12h11"/></svg><span>تسجيل خروج</span></button>
     </nav>
     <div class="sfoot" id="who"></div>
@@ -214,6 +219,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <div class="grid">
           <label>اسم الحساب<input id="a_name"></label>
           <label>النوع<select id="a_type"></select></label>
+          <label>الشركة<input id="a_company" list="companies" autocomplete="off" placeholder="الشركة اللي شغال معاها"></label>
           <label>التليفون<input id="a_phone" inputmode="tel"></label>
           <label>رصيد افتتاحي<input id="a_open" type="number" step="any" value="0"></label>
           <label>ملاحظات<input id="a_notes"></label>
@@ -261,7 +267,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         </div>
         <div class="row">
           <button class="btn ghost" onclick="window.print()">طباعة</button>
-          <button class="btn wa" id="stShare">مشاركة كصورة (واتساب)</button>
+          <button class="btn wa" id="stShare"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> مشاركة الكشف واتساب</button>
         </div>
         <div id="shareMsg" class="msg" hidden></div>
       </div>
@@ -278,6 +284,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
           <label style="min-width:220px">الحساب<select id="r_acc" class="accSel"></select></label>
           <button class="btn primary" id="regShow">عرض</button>
           <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" onclick="shareSection('regOut',TITLES[tab])"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> واتساب</button>
         </div>
       </div>
       <div id="regOut"></div>
@@ -291,6 +298,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
           <label>إلى<input id="p_to" type="date"></label>
           <button class="btn primary" id="profitShow">عرض</button>
           <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" onclick="shareSection('profitOut','الأرباح')"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> واتساب</button>
         </div>
         <p class="hint" style="margin:10px 0 0">الربح = قيمة المبيعات للعملاء ناقص قيمة المشتريات من السواقين والمحاجر في نفس الفترة.</p>
       </div>
@@ -305,6 +313,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
           <label>عرض<select id="b_type"><option value="">الكل</option><option value="مورد">الموردين بس</option><option value="عميل">العملاء بس</option><option>سواق</option><option>محجر</option><option>عميل محجر</option><option>عميل شركة</option></select></label>
           <button class="btn primary" id="balShow">عرض</button>
           <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" onclick="shareSection('balOut','ملخص الأرصدة')"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> واتساب</button>
         </div>
       </div>
       <div class="card" id="balOut"></div>
@@ -326,9 +335,16 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <div id="seedMsg" class="msg" hidden></div>
       </div>
       <div class="card">
-        <h3>نسخة احتياطية</h3>
-        <p class="hint">بينزّل كل الحسابات والحركات في ملف Excel. يستحسن تعملها كل أسبوع.</p>
-        <button class="btn ghost" id="backup">تنزيل نسخة احتياطية (Excel)</button>
+        <h3>نسخة احتياطية على الجهاز</h3>
+        <p class="hint">«حفظ نسخة» بينزّل ملف فيه كل الحسابات والحركات والجرارات على اللابتوب (في فولدر التنزيلات Downloads). احتفظ بيه في مكان آمن، ولو احتجت ترجّع البيانات في أي وقت اضغط «استرجاع من نسخة» واختار الملف. الاسترجاع بيضيف الناقص بس، ومش بيكرر ولا بيمسح حاجة موجودة. يستحسن تعمل نسخة كل أسبوع.</p>
+        <div class="row" style="margin-top:0">
+          <button class="btn primary" id="backupJson">حفظ نسخة على الجهاز</button>
+          <button class="btn ghost" id="restoreBtn">استرجاع من نسخة</button>
+          <button class="btn ghost" id="backup">تنزيل Excel للقراءة</button>
+          <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+        </div>
+        <p class="hint" id="lastBackup"></p>
+        <div id="backupMsg" class="msg" hidden></div>
       </div>
     </section>
   </div>
@@ -374,6 +390,7 @@ function demoClient(){
     select(){return this} order(){return this} range(a,b){this.r=[a,b];return this} eq(k,v){this.f.push(r=>r[k]==v);return this}
     insert(row){this.op="insert";this.row=row;return this} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
     run(){const T=DB[this.t];
+      if(this.op==="insert"&&Array.isArray(this.row)){const out=[];for(const row of this.row){const q=new Q(this.t);q.op="insert";q.row=row;const r=q.run();if(r.error)return r;out.push(...r.data);}return {data:out,error:null};}
       if(this.op==="insert"){if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
         const r={id:this.t==="ezz_vehicles"?T.length+1:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
         if(this.t==="ezz_accounts")r.code=String(codes[r.type]+(cnt[r.type]=(cnt[r.type]||0)+1));
@@ -406,7 +423,10 @@ const normPlate=s=>String(s||"").replace(/\s+/g," ").trim();
 const vehOf=p=>vehicles.find(v=>normPlate(v.plate)===normPlate(p));
 const vcode=v=>"ج-"+String(v.id).padStart(3,"0");
 const accById=id=>accounts.find(a=>a.id===id)||{};
-const lbl=a=>(a.code?a.code+" - ":"")+(a.name||"");
+/* شركة الحساب: المكتوبة في الحساب، أو آخر شركة اتسجلت في حركاته */
+function coOf(a){ if(!a||!a.id)return ""; if(a.company)return a.company; if(a.type==="عميل شركة")return "";
+  const r=entries.filter(e=>e.account_id===a.id&&e.company).sort((x,y)=>y.id-x.id)[0]; return r?r.company:""; }
+const lbl=a=>(a.code?a.code+" - ":"")+(a.name||"")+(coOf(a)?" · "+coOf(a):"");
 const catOf=e=>TYPES[accById(e.account_id).type];
 const isTrip=e=>e.trips!=null;
 
@@ -446,7 +466,7 @@ function fillDatalists(){
 }
 
 /* ---------- navigation ---------- */
-const TITLES={veh:"الجرارات والتكعيب",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",bal:"ملخص الأرصدة",users:"المستخدمين"};
+const TITLES={veh:"الجرارات والتكعيب",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
 const VIEW={veh:"veh",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",bal:"bal",users:"users"};
 let tab="home";
 function side(o){document.body.classList.toggle("side-open",o);$("scrim").hidden=!o;}
@@ -512,7 +532,7 @@ function vehFill(){
 $("e_vehicle").addEventListener("input",vehFill);$("e_vehicle").addEventListener("change",vehFill);
 $("e_acc").addEventListener("change",()=>{
   const id=+$("e_acc").value;if(!id)return;
-  {const a=accById(id);if(a.type==="عميل شركة"&&!$("e_company").value)$("e_company").value=a.name;}
+  {const a=accById(id);if(!$("e_company").value){if(a.company)$("e_company").value=a.company;else if(a.type==="عميل شركة")$("e_company").value=a.name;}}
   if(!$("e_vehicle").value){const dv=vehicles.find(v=>v.driver_id===id);if(dv){$("e_vehicle").value=dv.plate;vehFill();}}
   const r=entries.filter(e=>e.account_id===id&&isTrip(e)).sort((a,b)=>b.id-a.id)[0];
   if(r)[["e_vehicle","vehicle"],["e_trailer","trailer"],["e_cubic","cubic"],["e_price","price"],["e_contractor","contractor"],["e_company","company"]].forEach(([i,k])=>{if(!$(i).value&&r[k]!=null)$(i).value=r[k];});
@@ -579,16 +599,18 @@ function renderAccTable(){
   const q=$("accSearch").value.trim();
   const rows=accounts.filter(a=>TYPES[a.type]===accCat&&(!q||a.name.includes(q)||(a.code||"").includes(q)));
   
-  $("accTable").innerHTML="<tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>الرصيد الحالي</th><th>ملاحظات</th><th></th></tr>"+
-   (rows.map(a=>{const b=balNow(a.id);return `<tr><td class="num"><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${a.type}</td><td class="num">${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td${cls(b)}><b>${fmt(b)}</b></td><td>${esc(a.notes)}</td>
-    <td><button class="btn sm primary" onclick="go('st',{cat:'${accCat}',acc:${a.id}})">كشف حساب</button> <button class="btn sm ghost" onclick="editAcc(${a.id})">تعديل</button></td></tr>`;}).join("")||'<tr><td colspan="8">لسه مفيش حسابات</td></tr>');
+  $("accTable").innerHTML="<tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>الشركة</th><th>التليفون</th><th>رصيد افتتاحي</th><th>الرصيد الحالي</th><th>ملاحظات</th><th></th></tr>"+
+   (rows.map(a=>{const b=balNow(a.id);return `<tr><td class="num"><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${a.type}</td><td>${esc(coOf(a))}</td><td class="num">${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td${cls(b)}><b>${fmt(b)}</b></td><td>${esc(a.notes)}</td>
+    <td><button class="btn sm primary" onclick="go('st',{cat:'${accCat}',acc:${a.id}})">كشف حساب</button> <button class="btn sm ghost" onclick="editAcc(${a.id})">تعديل</button> <button class="btn sm wa" title="كشف الأسبوع ده واتساب" onclick="quickShare(${a.id})"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg></button></td></tr>`;}).join("")||'<tr><td colspan="9">لسه مفيش حسابات</td></tr>');
 }
 let accEditId=null;
-function accFormReset(){accEditId=null;["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;$("saveAcc").textContent="إضافة";$("cancelAcc").hidden=true;
+const noCompanyCol=e=>/company/i.test(e.message||"")&&(e.code==="PGRST204"||/column/i.test(e.message||""));
+const COL_MSG="اتحفظ، بس خانة الشركة لسه مش متضافة في قاعدة البيانات. الصق ملف تحديث_قاعدة_البيانات.sql في SQL Editor.";
+function accFormReset(){accEditId=null;["a_name","a_phone","a_notes","a_company"].forEach(i=>$(i).value="");$("a_open").value=0;$("saveAcc").textContent="إضافة";$("cancelAcc").hidden=true;
   $("accFormTitle").textContent=accCat==="مورد"?"إضافة مورد (سواق أو محجر)":"إضافة عميل (عميل محجر أو عميل شركة)";}
 function editAcc(id){
   const a=accById(id);accEditId=id;
-  $("a_name").value=a.name;$("a_type").value=a.type;$("a_phone").value=a.phone||"";$("a_open").value=a.opening_balance||0;$("a_notes").value=a.notes||"";
+  $("a_name").value=a.name;$("a_type").value=a.type;$("a_phone").value=a.phone||"";$("a_open").value=a.opening_balance||0;$("a_notes").value=a.notes||"";$("a_company").value=a.company||"";
   $("accFormTitle").textContent="تعديل "+(a.code?a.code+" - ":"")+a.name;$("saveAcc").textContent="حفظ التعديل";$("cancelAcc").hidden=false;$("accMsg").hidden=true;
   $("accFormTitle").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -596,13 +618,17 @@ $("cancelAcc").onclick=()=>{accFormReset();$("accMsg").hidden=true;};
 $("saveAcc").onclick=async()=>{
   const name=$("a_name").value.trim();if(!name)return msg("accMsg","اكتب اسم الحساب",false);
   if(accEditId){
-    const {error}=await sb.from("ezz_accounts").update({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).eq("id",accEditId);
+    let row={name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null,company:$("a_company").value.trim()||null};
+    let {error}=await sb.from("ezz_accounts").update(row).eq("id",accEditId);
+    if(error&&noCompanyCol(error)){delete row.company;({error}=await sb.from("ezz_accounts").update(row).eq("id",accEditId));if(!error){accFormReset();await loadAll();renderAccTable();return msg("accMsg",COL_MSG,false);}}
     if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل لحساب تاني":error.message,false);
     accFormReset();msg("accMsg","تم حفظ التعديل",true);await loadAll();renderAccTable();return;
   }
-  const {data,error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).select();
+  let row={name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null,company:$("a_company").value.trim()||null};
+  let {data,error}=await sb.from("ezz_accounts").insert(row).select();
+  if(error&&noCompanyCol(error)){delete row.company;({data,error}=await sb.from("ezz_accounts").insert(row).select());}
   if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
-  ["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;
+  ["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;$("a_company").value="";
   msg("accMsg","تم إضافة الحساب"+(data&&data[0]&&data[0].code?" بكود "+data[0].code:""),true);await loadAll();renderAccTable();
 };
 async function editOpening(id){
@@ -684,7 +710,7 @@ function renderSt(){
   const final=prev+T.net;
   const meaning=kind==="مورد"?(final>=0?"مستحق للمورد عندنا":"مستحق لينا عند المورد"):(final>=0?"مستحق لينا عند العميل":"مستحق للعميل عندنا");
   $("stOut").innerHTML=`<div class="sheet" id="stSheet"><div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">كشف حساب ${kind} أسبوعي</div></div>
-   <div class="kv"><div>الكود<b class="num">${esc(a.code||"")}</b></div><div>اسم ال${kind}<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div><div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b class="num">${$("s_calc").value}</b></div><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
+   <div class="kv"><div>الكود<b class="num">${esc(a.code||"")}</b></div><div>اسم ال${kind}<b>${esc(a.name)}</b></div><div>النوع<b>${a.type}</b></div>${coOf(a)?`<div>الشركة<b>${esc(coOf(a))}</b></div>`:""}<div>الفترة<b>${start} إلى ${end}</b></div><div>تاريخ المحاسبة<b class="num">${$("s_calc").value}</b></div><div>الرصيد السابق (مرحّل)<b${cls(prev)}>${fmt(prev)}</b></div></div>
    <div class="tw"><table><thead><tr><th>م</th><th>التاريخ</th><th>الجرار</th><th>المقطورة</th><th>رقم البون</th><th>عدد النقلات</th><th>التكعيب</th><th>الخصم</th><th>الكمية</th><th>السعر</th><th>القيمة</th><th>الدفعات</th><th>الصافي</th><th>الرصيد</th><th>اسم المقاول</th><th>الشركة</th></tr></thead>
    <tbody>${body||'<tr><td colspan="16">مفيش حركات في الأسبوع ده</td></tr>'}</tbody>
    <tfoot><tr><td colspan="5">الإجمالي</td><td class="num">${N(T.trips)}</td><td></td><td></td><td class="num">${N(T.qty)}</td><td></td><td class="num">${fmt(T.val)}</td><td class="num">${fmt(T.pay)}</td><td${cls(T.net)}>${fmt(T.net)}</td><td></td><td></td><td></td></tr></tfoot></table></div>
@@ -692,19 +718,44 @@ function renderSt(){
    <div class="big">الرصيد بعد الكشف (يترحّل للأسبوع الجاي)<b class="num">${fmt(final)}</b><small>${meaning}</small></div></div>
    <div class="sig"><span>توقيع المحاسب: ..................</span><span>توقيع ال${kind}: ..................</span></div></div>`;
 }
-$("stShare").onclick=async()=>{
+/* ---------- صورة + واتساب (زي برنامج الكسارة: نجهز الصورة الأول، وبعدين زرار «ابعت») ---------- */
+async function elToFile(el,name){
+  if(!window.html2canvas)throw new Error("no h2c");
+  const box=document.createElement("div");box.className="sheet capture";box.style.cssText="position:fixed;left:-10000px;top:0";
+  const c=el.cloneNode(true);c.querySelectorAll("button,.noprint").forEach(x=>x.remove());c.querySelectorAll(".tw").forEach(x=>x.style.overflow="visible");
+  if(!c.querySelector(".co-head"))box.innerHTML='<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div></div>';
+  box.appendChild(c);document.body.appendChild(box);
+  try{const canvas=await html2canvas(box,{scale:2,backgroundColor:"#ffffff",windowWidth:1200});
+    const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));return new File([blob],"ezz-"+(name.replace(/[^\w-]+/g," ").trim().replace(/ +/g,"-")||"kashf")+"-"+Date.now()%100000+".png",{type:"image/png"});}
+  finally{box.remove();}
+}
+function shareModal(title,el,name){
+  $("waModal")?.remove();
+  const m=document.createElement("div");m.id="waModal";
+  m.innerHTML=`<div class="card"><h3>${esc(title)}</h3><p class="hint" id="waStatus">بجهّز الصورة...</p><img id="waPrev" alt="" hidden>
+    <button class="btn wa" id="waSend" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> ابعت على واتساب</button>
+    <button class="btn ghost" id="waClose">إلغاء</button></div>`;
+  document.body.appendChild(m);$("waClose").onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove();};
+  elToFile(el,name).then(file=>{
+    const st=$("waStatus");if(!st)return;
+    st.textContent="الصورة جاهزة";const img=$("waPrev");img.src=URL.createObjectURL(file);img.hidden=false;
+    const b=$("waSend");b.disabled=false;
+    b.onclick=async()=>{
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{await navigator.share({files:[file]});m.remove();return;}catch(e){if(e&&e.name==="AbortError")return;}
+      }
+      const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+      st.textContent="الصورة اتنزلت على الجهاز، ابعتها من الواتساب.";
+    };
+  }).catch(()=>{const st=$("waStatus");if(st)st.textContent="مقدرتش أعمل الصورة. اتأكد إن النت شغال وجرّب تاني.";});
+}
+$("stShare").onclick=()=>{
   const el=$("stSheet");if(!el)return msg("shareMsg","اعرض الكشف الأول",false);
-  if(!window.html2canvas)return msg("shareMsg","مقدرتش أجهز الصورة، اتأكد من النت",false);
-  msg("shareMsg","بجهز الصورة...",true);
-  el.classList.add("capture");let canvas;
-  try{canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",windowWidth:1200});}finally{el.classList.remove("capture");}
-  const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));
-  const a=accById(+$("s_acc").value),name=`كشف حساب ${a.code||""} ${a.name} ${$("s_start").value}.png`;
-  const file=new File([blob],name,{type:"image/png"});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:name});msg("shareMsg","تمام",true);}catch(e){if(e.name!=="AbortError")msg("shareMsg","المشاركة مكملتش",false);}
-  }else{const l=document.createElement("a");l.href=URL.createObjectURL(blob);l.download=name;l.click();msg("shareMsg","الصورة اتنزلت، ابعتها من الواتساب",true);}
+  const a=accById(+$("s_acc").value);
+  shareModal("كشف حساب "+a.name,el,`kashf ${a.code||a.id} ${$("s_start").value}`);
 };
+function quickShare(id){go("st",{cat:accCat,acc:id});$("s_start").value=satOf();renderSt();$("stShare").click();}
+function shareSection(id,title){const el=$(id);if(!el||!el.textContent.trim())return;shareModal(title,el,"report "+today());}
 
 /* ---------- purchases / sales ---------- */
 let regCat="مورد";
@@ -771,9 +822,9 @@ function renderBal(){
     return {a,prev,trips:sum(wt,"trips"),qty:sum(wt,"quantity"),val:sum(wt,"value"),pay:sum(w,"payments"),net:sum(w,"net"),bal:prev+sum(w,"net")};});
   const S=k=>rows.reduce((t,r)=>t+r[k],0);
   $("balOut").innerHTML=`<div class="co-head"><div class="co">عز الدين للمقاولات العامة والتوريدات</div><div class="sub">ملخص الأرصدة من ${s} إلى ${e}</div></div><div class="tw"><table>
-   <thead><tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>الرصيد السابق</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
-   <tbody>${rows.map(r=>`<tr><td class="num">${esc(r.a.code)}</td><td>${esc(r.a.name)}</td><td><span class="pill ${TYPES[r.a.type]==="مورد"?"sup":"cus"}">${r.a.type}</span></td><td${cls(r.prev)}>${fmt(r.prev)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.qty)}</td><td class="num">${fmt(r.val)}</td><td class="num">${fmt(r.pay)}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(r.bal)}><b>${fmt(r.bal)}</b></td></tr>`).join("")||'<tr><td colspan="10">لسه مفيش حسابات</td></tr>'}</tbody>
-   <tfoot><tr><td colspan="3">الإجمالي</td><td class="num">${fmt(S("prev"))}</td><td class="num">${N(S("trips"))}</td><td class="num">${N(S("qty"))}</td><td class="num">${fmt(S("val"))}</td><td class="num">${fmt(S("pay"))}</td><td class="num">${fmt(S("net"))}</td><td class="num">${fmt(S("bal"))}</td></tr></tfoot></table></div>`;
+   <thead><tr><th>الكود</th><th>اسم الحساب</th><th>الشركة</th><th>النوع</th><th>الرصيد السابق</th><th>النقلات</th><th>الكمية</th><th>القيمة</th><th>الدفعات</th><th>صافي الأسبوع</th><th>الرصيد الحالي</th></tr></thead>
+   <tbody>${rows.map(r=>`<tr><td class="num">${esc(r.a.code)}</td><td>${esc(r.a.name)}</td><td>${esc(coOf(r.a))}</td><td><span class="pill ${TYPES[r.a.type]==="مورد"?"sup":"cus"}">${r.a.type}</span></td><td${cls(r.prev)}>${fmt(r.prev)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.qty)}</td><td class="num">${fmt(r.val)}</td><td class="num">${fmt(r.pay)}</td><td${cls(r.net)}>${fmt(r.net)}</td><td${cls(r.bal)}><b>${fmt(r.bal)}</b></td></tr>`).join("")||'<tr><td colspan="11">لسه مفيش حسابات</td></tr>'}</tbody>
+   <tfoot><tr><td colspan="4">الإجمالي</td><td class="num">${fmt(S("prev"))}</td><td class="num">${N(S("trips"))}</td><td class="num">${N(S("qty"))}</td><td class="num">${fmt(S("val"))}</td><td class="num">${fmt(S("pay"))}</td><td class="num">${fmt(S("net"))}</td><td class="num">${fmt(S("bal"))}</td></tr></tfoot></table></div>`;
 }
 
 /* ---------- users + backup ---------- */
@@ -812,7 +863,53 @@ $("backup").onclick=()=>{
   const acc=accounts.map(a=>[a.code,a.name,a.type,a.phone,a.opening_balance,balNow(a.id),a.notes]);
   const tb=(h,rs)=>"<table border=1><tr>"+h.map(x=>"<th>"+esc(x)+"</th>").join("")+"</tr>"+rs.map(r=>"<tr>"+r.map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("")+"</table>";
   const html='﻿<html><head><meta charset="utf-8"></head><body dir="rtl"><h3>الحسابات</h3>'+tb(["الكود","الاسم","النوع","التليفون","رصيد افتتاحي","الرصيد الحالي","ملاحظات"],acc)+"<h3>الحركات</h3>"+tb(H,rows)+"</body></html>";
-  const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([html],{type:"application/vnd.ms-excel"}));l.download="عز الدين نسخة احتياطية "+today()+".xls";l.click();
+  const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([html],{type:"application/vnd.ms-excel"}));l.download="ezz-backup-"+today()+".xls";l.click();
+};
+
+const BK_KEY="ezz_last_backup";
+function showLastBackup(){let d=null;try{d=localStorage.getItem(BK_KEY);}catch(e){}
+  $("lastBackup").textContent=d?"آخر نسخة اتحفظت من الجهاز ده: "+d:"لسه متعملتش نسخة من الجهاز ده.";}
+showLastBackup();
+$("backupJson").onclick=()=>{
+  const strip=({quantity,value,net,created_at,created_by,...r})=>r;
+  const data={app:"ezz_accounts",version:1,saved_at:new Date().toISOString(),
+    accounts:accounts.map(({created_at,...a})=>a),entries:entries.map(strip),vehicles:vehicles.map(({created_at,...v})=>v)};
+  const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:"application/json"}));
+  l.download="ezz-backup-"+today()+".json";document.body.appendChild(l);l.click();l.remove();
+  try{localStorage.setItem(BK_KEY,today());}catch(e){} showLastBackup();
+  msg("backupMsg",`اتحفظت نسخة فيها ${accounts.length} حساب و${entries.length} حركة. هتلاقيها في فولدر التنزيلات باسم ezz-backup-${today()}.json`,true);
+};
+$("restoreBtn").onclick=()=>{$("restoreFile").value="";$("restoreFile").click();};
+$("restoreFile").onchange=async ev=>{
+  const f=ev.target.files[0];if(!f)return;
+  let d;try{d=JSON.parse(await f.text());}catch(e){return msg("backupMsg","الملف ده مش نسخة احتياطية من البرنامج",false);}
+  if(d.app!=="ezz_accounts"||!Array.isArray(d.accounts)||!Array.isArray(d.entries))return msg("backupMsg","الملف ده مش نسخة احتياطية من البرنامج",false);
+  const newAcc=d.accounts.filter(a=>!accounts.some(x=>x.name===a.name));
+  if(!confirm(`النسخة بتاريخ ${(d.saved_at||"").slice(0,10)} فيها ${d.accounts.length} حساب و${d.entries.length} حركة.\nهضيف الناقص بس (${newAcc.length} حساب جديد) ومش همسح حاجة. نكمل؟`))return;
+  const b=$("restoreBtn");b.disabled=true;msg("backupMsg","بسترجع البيانات...",true);
+  try{
+    if(newAcc.length){
+      let rows=newAcc.map(({id,...a})=>a);
+      let {error}=await sb.from("ezz_accounts").insert(rows);
+      if(error&&/company|code/.test(error.message||"")){rows=rows.map(({company,code,...a})=>a);({error}=await sb.from("ezz_accounts").insert(rows));}
+      if(error)throw new Error("الحسابات: "+error.message);
+      await loadAll();
+    }
+    const oldName={};d.accounts.forEach(a=>oldName[a.id]=a.name);
+    const idByName={};accounts.forEach(a=>idByName[a.name]=a.id);
+    const K=["entry_date","vehicle","trailer","bon_no","trips","cubic","deduction","price","payments"];
+    const key=(acc,r)=>acc+"|"+K.map(k=>r[k]==null||r[k]===""?"":(typeof r[k]==="number"||/^-?\d+(\.\d+)?$/.test(r[k])?+r[k]:r[k])).join("|");
+    const have=new Set(entries.map(e=>key(e.account_id,e)));
+    const add=[];for(const {id,account_id,quantity,value,net,created_at,created_by,...r} of d.entries){
+      const acc=idByName[oldName[account_id]];if(!acc)continue;const k=key(acc,r);if(have.has(k))continue;have.add(k);add.push({...r,account_id:acc});}
+    for(let i=0;i<add.length;i+=500){const {error}=await sb.from("ezz_entries").insert(add.slice(i,i+500));if(error)throw new Error("الحركات: "+error.message);}
+    let vAdd=0;
+    if(vehReady&&Array.isArray(d.vehicles)){const vs=d.vehicles.filter(v=>!vehicles.some(x=>x.plate===v.plate)).map(({id,driver_id,...v})=>({...v,driver_id:idByName[oldName[driver_id]]||null}));
+      if(vs.length){const {error}=await sb.from("ezz_vehicles").insert(vs);if(!error)vAdd=vs.length;}}
+    await loadAll();
+    msg("backupMsg",`تم الاسترجاع: اتضاف ${newAcc.length} حساب و${add.length} حركة${vAdd?" و"+vAdd+" جرار":""}. اللي كان موجود فضل زي ما هو.`,true);
+  }catch(e){msg("backupMsg","الاسترجاع وقف: "+e.message,false);}
+  finally{b.disabled=false;}
 };
 
 /* ---------- auth ---------- */
