@@ -422,7 +422,7 @@ const DEMO=location.hash==="#demo";
 const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"ezz_auth"}});
 const $=id=>document.getElementById(id);
 /* ---------- الشركات: كل شركة بحساباتها لوحدها ---------- */
-let CID=0,companies=[],isOwner=false,myEmail="";
+let ALLACC=[],CID=0,companies=[],isOwner=false,myEmail="";
 try{CID=+localStorage.getItem("ezz_cid")||0;}catch(e){}
 const CO_ROW="⟦company⟧",coTag=id=>id?"⟦co:"+id+"⟧":"";
 const tagNotes=r=>{if(!CID)return r;const f=x=>({...x,notes:coTag(CID)+(x.notes||"")});return Array.isArray(r)?r.map(f):f(r);};
@@ -460,7 +460,7 @@ const isTrip=e=>e.trips!=null;
 async function loadAll(){
   const {data:acc,error:e1}=await T("ezz_accounts").select("*");
   if(e1){alert("مشكلة في تحميل الحسابات: "+e1.message);return;}
-  const allAcc=acc.map(parseCo);
+  const allAcc=acc.map(parseCo);ALLACC=allAcc;
   companies=[{id:0,name:DEF_CO},...allAcc.filter(x=>x.notes===CO_ROW).sort((x,y)=>x.id-y.id).map(x=>({id:x.id,name:x.name,phone:x.phone}))];
   if(!companies.some(c=>c.id===CID))CID=0;
   accounts=allAcc.filter(x=>x.notes!==CO_ROW&&x._co===CID).sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
@@ -918,12 +918,25 @@ async function switchCo(id){CID=id;try{localStorage.setItem("ezz_cid",id);}catch
 $("coSel").onchange=()=>{const v=$("coSel").value;if(v==="new"){$("coSel").value=CID;go("users");$("coName").focus();return;}switchCo(+v);};
 function renderCompanies(){
   $("cuCard").hidden=true;
-  $("coTable").innerHTML="<tr><th>الشركة</th><th>تعديل</th></tr>"+companies.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.id===CID?' <span class="pill">الشغالة دلوقتي</span>':""}</td><td>${c.id!==CID?`<button class="btn sm primary" onclick="switchCo(${c.id})">افتحها</button> `:""}${c.id?`<button class="btn sm ghost" onclick="renameCo(${c.id})">تغيير الاسم</button> `:""}<select onchange="setTheme(${c.id},this.value)" title="لون الشركة">${Object.entries(THEMES).map(([k,v])=>`<option value="${k}"${themeOf(c)===k?" selected":""}>اللون: ${v[0]}</option>`).join("")}</select></td></tr>`).join("");
+  $("coTable").innerHTML="<tr><th>الشركة</th><th>تعديل</th></tr>"+companies.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.id===CID?' <span class="pill">الشغالة دلوقتي</span>':""}</td><td>${c.id!==CID?`<button class="btn sm primary" onclick="switchCo(${c.id})">افتحها</button> `:""}${c.id?`<button class="btn sm ghost" onclick="renameCo(${c.id})">تغيير الاسم</button> <button class="btn sm danger" onclick="delCo(${c.id})">حذف الشركة</button> `:""}<select onchange="setTheme(${c.id},this.value)" title="لون الشركة">${Object.entries(THEMES).map(([k,v])=>`<option value="${k}"${themeOf(c)===k?" selected":""}>اللون: ${v[0]}</option>`).join("")}</select></td></tr>`).join("");
 }
 async function setTheme(id,th){
   if(id===0){try{localStorage.setItem("ezz_theme0",th);}catch(e){}}
   else{const {error}=await sb.from("ezz_accounts").update({phone:"theme:"+th}).eq("id",id);if(error)return msg("coMsg",error.message,false);}
   await loadAll();renderCompanies();}
+async function delCo(id){const c=companies.find(x=>x.id===id);if(!c)return;
+  const accs=ALLACC.filter(a=>a._co===id&&a.notes!==CO_ROW),ids=new Set(accs.map(a=>a.id));
+  const {data:es}=await sb.from("ezz_entries").select("id,account_id");const n=(es||[]).filter(e=>ids.has(e.account_id)).length;
+  const typed=prompt(`هتحذف «${c.name}» نهائيًا، ومعاها ${accs.length} حساب و${n} حركة وكل جراراتها. الحذف مش بيرجع.\n\nلو متأكد اكتب كلمة: حذف`);
+  if((typed||"").trim()!=="حذف")return msg("coMsg","متحذفش حاجة",true);
+  msg("coMsg","بحذف...",true);
+  for(const a of accs){const {error}=await sb.from("ezz_entries").delete().eq("account_id",a.id);if(error)return msg("coMsg",error.message,false);}
+  const {data:vs}=await sb.from("ezz_vehicles").select("id,notes");
+  for(const v of (vs||[]).filter(v=>parseCo(v)._co===id)){await sb.from("ezz_vehicles").delete().eq("id",v.id);}
+  for(const a of accs){const {error}=await sb.from("ezz_accounts").delete().eq("id",a.id);if(error)return msg("coMsg",error.message,false);}
+  const {error}=await sb.from("ezz_accounts").delete().eq("id",id);if(error)return msg("coMsg",error.message,false);
+  if(CID===id){CID=0;try{localStorage.setItem("ezz_cid",0);}catch(e){}}
+  await loadAll();renderCompanies();msg("coMsg","اتحذفت «"+c.name+"» وكل بياناتها",true);}
 async function renameCo(id){const c=companies.find(x=>x.id===id);const v=prompt("اسم الشركة الجديد",c.name);if(!v||!v.trim())return;
   const {error}=await sb.from("ezz_accounts").update({name:v.trim()}).eq("id",id);if(error)return msg("coMsg",error.code==="23505"?"الاسم ده مستخدم":error.message,false);
   await loadAll();renderCompanies();msg("coMsg","تم تغيير الاسم",true);}
