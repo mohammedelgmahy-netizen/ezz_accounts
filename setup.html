@@ -1,0 +1,17 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تجهيز الشركات</title>
+<style>body{font-family:Tahoma,sans-serif;background:#f6f3ea;color:#16202b;margin:0;padding:24px 16px;text-align:center}
+.c{max-width:460px;margin:auto;background:#fffdf8;border:1px solid #e4dccb;border-radius:12px;padding:20px}
+a,button{display:block;width:100%;box-sizing:border-box;padding:16px;margin:12px 0;border-radius:10px;font-size:18px;font-weight:bold;border:0;text-decoration:none;cursor:pointer}
+button{background:#1f4e78;color:#fff}a{background:#1f7a45;color:#fff}p{line-height:1.8}#m{color:#1f7a45;font-weight:bold}</style></head>
+<body><div class="c"><h2>تجهيز الشركات (مرة واحدة)</h2>
+<p>١- دوس الزرار الأزرق علشان ينسخ الكود.</p><button id="b">١- انسخ الكود</button><div id="m"></div>
+<p>٢- دوس الزرار الأخضر، والصق في الخانة البيضا (ضغطة طويلة ← لصق)، ودوس <b>Run</b>.</p>
+<a href="https://supabase.com/dashboard/project/lhamdnaxioxqptkylvkg/sql/new" target="_blank">٢- افتح Supabase</a>
+<p>لما يكتبلك <b>Success</b> ارجع للبرنامج.</p></div>
+<script>
+let sql="";fetch("schema_companies.sql?"+Date.now()).then(r=>r.text()).then(t=>sql=t);
+document.getElementById("b").onclick=async()=>{const m=document.getElementById("m");
+  try{await navigator.clipboard.writeText(sql);m.textContent="✓ اتنسخ";}
+  catch(e){const t=document.createElement("textarea");t.value=sql;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();m.textContent="✓ اتنسخ";}};
+</script></body></html>
