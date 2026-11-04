@@ -408,7 +408,7 @@ function demoClient(){
   return {from:t=>new Q(t),rpc:async()=>({data:true}),auth:{getSession:async()=>({data:{session:{user:{email:"وضع التجربة"}}}}),signOut:async()=>({})}};
 }
 const DEMO=location.hash==="#demo";
-const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"ezz_auth"}});
 const $=id=>document.getElementById(id);
 let CO=(()=>{try{return localStorage.getItem("ezz_co_name")}catch(e){return null}})()||"عز الدين للمقاولات العامة والتوريدات";
 const fmt=n=>(n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -930,7 +930,9 @@ $("restoreFile").onchange=async ev=>{
 $("loginForm").onsubmit=async e=>{
   e.preventDefault();
   const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("pass").value});
-  if(error)msg("loginMsg","الإيميل أو كلمة السر غلط",false);else start();
+  if(!error)return start();
+  const m=error.message||"";
+  msg("loginMsg",/confirm/i.test(m)?"الإيميل ده لسه متأكدش. افتح رسالة التأكيد اللي جاتلك على الإيميل وبعدين ادخل.":/invalid/i.test(m)?"الإيميل أو كلمة السر غلط":/fetch|network/i.test(m)?"مفيش اتصال بالنت، اتأكد وجرّب تاني":"مقدرتش أدخل: "+m,false);
 };
 $("signupBtn").onclick=async()=>{
   const email=$("email").value.trim(),password=$("pass").value;
@@ -946,7 +948,9 @@ if(DEMO){const b=document.createElement("div");b.className="demobar";b.innerHTML
 async function start(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$("gate").hidden=false;$("app").hidden=true;return;}
-  const {data:ok}=await sb.rpc("ezz_claim_first_admin");
+  const {data:ok,error:rpcErr}=await sb.rpc("ezz_claim_first_admin");
+  if(rpcErr){$("gate").hidden=false;$("app").hidden=true;
+    msg("loginMsg",/does not exist|Could not find|schema cache/i.test(rpcErr.message||"")?"قاعدة بيانات البرنامج ده لسه متجهزتش. الصق ملف SQL بتاعه في Supabase مرة واحدة وبعدين ادخل.":"مشكلة في الاتصال بقاعدة البيانات: "+rpcErr.message,false);return;}
   if(!ok){await sb.auth.signOut();$("gate").hidden=false;$("app").hidden=true;msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة المستخدمين.",false);return;}
   $("gate").hidden=true;$("app").hidden=false;$("who").textContent=session.user.email;
   $("e_date").value=today();
