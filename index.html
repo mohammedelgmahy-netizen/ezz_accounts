@@ -138,7 +138,6 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     <form id="loginForm">
       <label>الإيميل<input id="email" type="email" autocomplete="username" required></label>
       <label>كلمة السر<input id="pass" type="password" autocomplete="current-password" required></label>
-      <label id="coNewWrap" hidden>اسم الشركة<input id="coNew" placeholder="مثلاً: شركة العاصم للمقاولات العمومية"></label>
       <div id="loginMsg" class="msg" hidden></div>
       <div class="acts"><button class="btn primary" type="submit">دخول</button><button class="btn" type="button" id="signupBtn">حساب جديد</button></div>
     </form>
@@ -401,18 +400,16 @@ function demoData(){
 function demoClient(){
   const {acc,ent}=demoData(),codes={"عميل شركة":11000,"عميل محجر":12000,"سواق":21000,"محجر":22000},cnt={};
   const DB={ezz_accounts:acc.map((a,i)=>({id:i+1,code:String(codes[a.type]+(cnt[a.type]=(cnt[a.type]||0)+1)),...a})),ezz_entries:[],ezz_members:[{email:"تجربة",is_admin:true,created_at:1}],ezz_vehicles:[{id:1,plate:"ط ق ن 123",trailer:"م 456",cube:20,driver_id:1},{id:2,plate:"ر س م 852",trailer:"م 741",cube:21,driver_id:2},{id:3,plate:"س ع د 789",trailer:"م 101",cube:18,driver_id:null}],ezz_companies:[{id:1,name:"عز الدين للمقاولات العامة والتوريدات"}],ezz_company_users:[]};
-  ["ezz_accounts","ezz_vehicles"].forEach(t=>DB[t].forEach(r=>r.company_id=1));
   let seq=1;const der=e=>{const q=(e.trips||0)*(e.cubic||0)-(e.deduction||0);e.quantity=q;e.value=q*(e.price||0);e.net=e.value-(e.payments||0);return e;};
-  ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,company_id:1,...e})));let aseq=100;
+  ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,...e})));let aseq=100;
   class Q{constructor(t){this.t=t;this.f=[];this.op="select";}
     select(){return this} order(){return this} range(a,b){this.r=[a,b];return this} eq(k,v){this.f.push(r=>r[k]==v);return this}
     insert(row){this.op="insert";this.row=row;return this} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
     run(){const T=DB[this.t];
       if(this.op==="insert"&&Array.isArray(this.row)){const out=[];for(const row of this.row){const q=new Q(this.t);q.op="insert";q.row=row;const r=q.run();if(r.error)return r;out.push(...r.data);}return {data:out,error:null};}
-      if(this.op==="insert"){if(this.t==="ezz_companies"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
-        if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name&&a.company_id===this.row.company_id))return {error:{code:"23505",message:"dup"}};
+      if(this.op==="insert"){if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
         const r={id:this.t==="ezz_vehicles"||this.t==="ezz_companies"?T.length+1:this.t==="ezz_accounts"?aseq++:seq++,...this.row};
-        if(this.t==="ezz_accounts")r.code=String(codes[r.type]+(cnt[r.type]=(cnt[r.type]||0)+1));
+        if(this.t==="ezz_accounts"&&!r.code)r.code=String(codes[r.type]+(cnt[r.type]=(cnt[r.type]||0)+1));
         if(this.t==="ezz_entries")der(r);T.push(r);return {data:[r],error:null};}
       if(this.op==="update"){T.filter(r=>this.f.every(f=>f(r))).forEach(r=>{Object.assign(r,this.p);if(this.t==="ezz_entries")der(r);});return {error:null};}
       if(this.op==="delete"){DB[this.t]=T.filter(r=>!this.f.every(f=>f(r)));return {error:null};}
@@ -424,11 +421,13 @@ const DEMO=location.hash==="#demo";
 const sb=DEMO?demoClient():supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storageKey:"ezz_auth"}});
 const $=id=>document.getElementById(id);
 /* ---------- الشركات: كل شركة بحساباتها لوحدها ---------- */
-let CID=null,companies=[],coReady=false,isOwner=false,myEmail="";
-const SCOPED=new Set(["ezz_accounts","ezz_entries","ezz_vehicles"]);
-function T(t){const q=sb.from(t);if(!SCOPED.has(t)||!coReady||CID==null)return q;
-  const tag=r=>Array.isArray(r)?r.map(x=>({...x,company_id:CID})):{...r,company_id:CID};
-  return {select:(...a)=>q.select(...a).eq("company_id",CID),insert:r=>q.insert(tag(r)),update:p=>q.update(p).eq("company_id",CID),delete:()=>q.delete().eq("company_id",CID)};}
+let CID=0,companies=[],isOwner=false,myEmail="";
+try{CID=+localStorage.getItem("ezz_cid")||0;}catch(e){}
+const CO_ROW="⟦company⟧",coTag=id=>id?"⟦co:"+id+"⟧":"";
+const tagNotes=r=>{if(!CID)return r;const f=x=>({...x,notes:coTag(CID)+(x.notes||"")});return Array.isArray(r)?r.map(f):f(r);};
+const parseCo=a=>{const m=/^⟦co:(\d+)⟧/.exec(a.notes||"");return {...a,_co:m?+m[1]:0,notes:m?(a.notes.slice(m[0].length)||null):a.notes};};
+function T(t){const q=sb.from(t);if(t!=="ezz_accounts"&&t!=="ezz_vehicles")return q;
+  return {select:(...x)=>q.select(...x),insert:r=>q.insert(tagNotes(r)),update:p=>q.update("notes" in p?tagNotes(p):p),delete:()=>q.delete()};}
 let CO="عز الدين للمقاولات العامة والتوريدات";
 const fmt=n=>(n==null||n==="")?"":Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const N=v=>v==null||v===""?"":Number(v).toLocaleString("en-US",{maximumFractionDigits:2});
@@ -460,15 +459,19 @@ const isTrip=e=>e.trips!=null;
 async function loadAll(){
   const {data:acc,error:e1}=await T("ezz_accounts").select("*");
   if(e1){alert("مشكلة في تحميل الحسابات: "+e1.message);return;}
-  accounts=acc.sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
+  const allAcc=acc.map(parseCo);
+  companies=[{id:0,name:DEF_CO},...allAcc.filter(x=>x.notes===CO_ROW).sort((x,y)=>x.id-y.id).map(x=>({id:x.id,name:x.name}))];
+  if(!companies.some(c=>c.id===CID))CID=0;
+  accounts=allAcc.filter(x=>x.notes!==CO_ROW&&x._co===CID).sort((a,b)=>(a.code||"").localeCompare(b.code||"")||a.name.localeCompare(b.name,"ar"));
   let all=[],from=0;
   for(;;){const {data,error}=await T("ezz_entries").select("*").order("id").range(from,from+999);
     if(error){alert("مشكلة في تحميل الحركات: "+error.message);break;}
     all=all.concat(data); if(data.length<1000)break; from+=1000;}
-  entries=all.map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
+  const accIds=new Set(accounts.map(x=>x.id));
+  entries=all.filter(e=>accIds.has(e.account_id)).map(e=>({...e,trips:e.trips==null?null:+e.trips,cubic:e.cubic==null?null:+e.cubic,deduction:+e.deduction||0,quantity:+e.quantity||0,price:e.price==null?null:+e.price,value:+e.value||0,payments:+e.payments||0,net:+e.net||0}));
   const {data:vs,error:e3}=await T("ezz_vehicles").select("*");
-  vehReady=!e3; vehicles=(vs||[]).map(v=>({...v,cube:v.cube==null?null:+v.cube})).sort((a,b)=>a.id-b.id);
-  fillSelects(); fillDatalists();
+  vehReady=!e3; vehicles=(vs||[]).map(parseCo).filter(v=>v._co===CID).map(v=>({...v,cube:v.cube==null?null:+v.cube})).sort((a,b)=>a.id-b.id);
+  fillSelects(); fillDatalists(); applyCo();
 }
 const balBefore=(id,d)=>(+accById(id).opening_balance||0)+entries.filter(e=>e.account_id===id&&e.entry_date<d).reduce((s,e)=>s+e.net,0);
 const balNow=id=>(+accById(id).opening_balance||0)+entries.filter(e=>e.account_id===id).reduce((s,e)=>s+e.net,0);
@@ -895,44 +898,24 @@ $("backup").onclick=()=>{
 const DEF_CO="عز الدين للمقاولات العامة والتوريدات",SIDE0=$("coSide").innerHTML;
 function applyCo(){const c=companies.find(x=>x.id===CID);CO=c?c.name:DEF_CO;$("coSub").textContent=CO;
   $("coSide").innerHTML=CO===DEF_CO?SIDE0:"<b>"+esc(CO)+"</b>";
-  $("coSelWrap").hidden=!coReady||companies.length<2&&!isOwner;
-  $("coSel").innerHTML=companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")+(isOwner?'<option value="new">+ شركة جديدة</option>':"");
+  $("coSelWrap").hidden=false;
+  $("coSel").innerHTML=companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")+'<option value="new">+ إضافة شركة جديدة</option>';
   $("coSel").value=CID;}
-async function loadCompanies(){
-  const {data,error}=await sb.from("ezz_companies").select("*").order("id");
-  coReady=!error;companies=data||[];
-  if(!coReady){CID=null;return;}
-  let saved=null;try{saved=+localStorage.getItem("ezz_cid");}catch(e){}
-  CID=companies.some(c=>c.id===saved)?saved:(companies[0]?.id??null);
-}
-async function switchCo(id){CID=id;try{localStorage.setItem("ezz_cid",id);}catch(e){}applyCo();await loadAll();
+async function switchCo(id){CID=id;try{localStorage.setItem("ezz_cid",id);}catch(e){}await loadAll();
   const t=document.querySelector("#tabs button.on")?.dataset.tab||"home";go(t==="users"?"users":"home");}
 $("coSel").onchange=()=>{const v=$("coSel").value;if(v==="new"){$("coSel").value=CID;go("users");$("coName").focus();return;}switchCo(+v);};
 function renderCompanies(){
-  $("coAddRow").hidden=!isOwner||!coReady;
-  $("memTable").closest(".card").hidden=!isOwner;
-  if(!coReady){$("coTable").innerHTML='<tr><td>علشان تقدر تضيف شركات، لازم ملف «شركات.sql» يتشغل على قاعدة البيانات مرة واحدة.</td></tr>';$("cuCard").hidden=true;return;}
-  $("cuCard").hidden=false;
-  $("coTable").innerHTML="<tr><th>الشركة</th><th></th></tr>"+companies.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.id===CID?' <span class="pill">الشغالة دلوقتي</span>':""}</td><td>${c.id!==CID?`<button class="btn sm primary" onclick="switchCo(${c.id})">افتحها</button> `:""}${isOwner?`<button class="btn sm ghost" onclick="renameCo(${c.id})">تغيير الاسم</button>`:""}</td></tr>`).join("");
-  loadCoUsers();
+  $("cuCard").hidden=true;
+  $("coTable").innerHTML="<tr><th>الشركة</th><th></th></tr>"+companies.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.id===CID?' <span class="pill">الشغالة دلوقتي</span>':""}</td><td>${c.id!==CID?`<button class="btn sm primary" onclick="switchCo(${c.id})">افتحها</button> `:""}${c.id?`<button class="btn sm ghost" onclick="renameCo(${c.id})">تغيير الاسم</button>`:""}</td></tr>`).join("");
 }
 async function renameCo(id){const c=companies.find(x=>x.id===id);const v=prompt("اسم الشركة الجديد",c.name);if(!v||!v.trim())return;
-  const {error}=await sb.from("ezz_companies").update({name:v.trim()}).eq("id",id);if(error)return msg("coMsg",error.code==="23505"?"فيه شركة بنفس الاسم":error.message,false);
-  await loadCompanies();CID=id;applyCo();renderCompanies();msg("coMsg","تم تغيير الاسم",true);}
+  const {error}=await sb.from("ezz_accounts").update({name:v.trim()}).eq("id",id);if(error)return msg("coMsg",error.code==="23505"?"الاسم ده مستخدم":error.message,false);
+  await loadAll();renderCompanies();msg("coMsg","تم تغيير الاسم",true);}
 $("coAdd").onclick=async()=>{const name=$("coName").value.trim();if(!name)return msg("coMsg","اكتب اسم الشركة",false);
-  const {data,error}=await sb.from("ezz_companies").insert({name}).select();
-  if(error)return msg("coMsg",error.code==="23505"?"الشركة دي موجودة قبل كده":error.message,false);
-  $("coName").value="";await loadCompanies();await switchCo(data[0].id);go("users");msg("coMsg","تم إضافة «"+name+"» وفتحتهالك. ابدأ ضيف الموردين والعملاء بتوعها.",true);};
-async function loadCoUsers(){
-  const {data}=await sb.from("ezz_company_users").select("*").eq("company_id",CID);
-  $("cuTable").innerHTML="<tr><th>الإيميل</th><th>الصلاحية</th><th></th></tr>"+((data||[]).map(u=>`<tr><td>${esc(u.email)}</td><td>${u.is_admin?"مدير الشركة":"مستخدم"}</td><td><button class="btn sm danger" onclick="delCoUser('${esc(u.email)}')">شيل</button></td></tr>`).join("")||'<tr><td colspan="3">لسه مفيش موظفين للشركة دي</td></tr>');
-}
-$("cuAdd").onclick=async()=>{const email=$("cu_email").value.trim().toLowerCase();if(!email)return msg("cuMsg","اكتب الإيميل",false);
-  const {error}=await sb.from("ezz_company_users").insert({company_id:CID,email,is_admin:$("cu_admin").value==="1"});
-  if(error)return msg("cuMsg",error.code==="23505"?"الإيميل ده متضاف قبل كده":"مدير البرنامج أو مدير الشركة بس اللي يضيف موظفين",false);
-  $("cu_email").value="";msg("cuMsg","تم. خليه يعمل «حساب جديد» بالإيميل ده من شاشة الدخول.",true);loadCoUsers();};
-async function delCoUser(email){if(!confirm("هتشيل "+email+" من الشركة دي؟"))return;
-  const {error}=await sb.from("ezz_company_users").delete().eq("company_id",CID).eq("email",email);if(error)return msg("cuMsg",error.message,false);loadCoUsers();}
+  if(companies.some(c=>c.name===name))return msg("coMsg","الشركة دي موجودة قبل كده",false);
+  const {data,error}=await sb.from("ezz_accounts").insert({name,type:"عميل شركة",notes:CO_ROW,opening_balance:0,code:"co-"+Date.now()}).select();
+  if(error)return msg("coMsg",error.code==="23505"?"الاسم ده مستخدم":error.message,false);
+  $("coName").value="";await switchCo(data[0].id);go("users");msg("coMsg","تم إضافة «"+name+"» وفتحتهالك. ابدأ ضيف الموردين والعملاء بتوعها.",true);};
 const BK_KEY="ezz_last_backup";
 function showLastBackup(){let d=null;try{d=localStorage.getItem(BK_KEY);}catch(e){}
   $("lastBackup").textContent=d?"آخر نسخة اتحفظت من الجهاز ده: "+d:"لسه متعملتش نسخة من الجهاز ده.";}
@@ -988,11 +971,9 @@ $("loginForm").onsubmit=async e=>{
   msg("loginMsg",/confirm/i.test(m)?"الإيميل ده لسه متأكدش. افتح رسالة التأكيد اللي جاتلك على الإيميل وبعدين ادخل.":/invalid/i.test(m)?"الإيميل أو كلمة السر غلط":/fetch|network/i.test(m)?"مفيش اتصال بالنت، اتأكد وجرّب تاني":"مقدرتش أدخل: "+m,false);
 };
 $("signupBtn").onclick=async()=>{
-  if($("coNewWrap").hidden){$("coNewWrap").hidden=false;$("coNew").focus();return msg("loginMsg","اكتب اسم شركتك، وبعدين دوس «حساب جديد» تاني",true);}
-  const email=$("email").value.trim().toLowerCase(),password=$("pass").value,company=$("coNew").value.trim();
+  const email=$("email").value.trim().toLowerCase(),password=$("pass").value;
   if(!email||password.length<6)return msg("loginMsg","اكتب الإيميل وكلمة سر 6 حروف على الأقل",false);
-  if(!company)return msg("loginMsg","اكتب اسم الشركة",false);
-  const {data,error}=await sb.auth.signUp({email,password,options:{data:{company_name:company}}});
+  const {data,error}=await sb.auth.signUp({email,password});
   if(error)return msg("loginMsg",error.message,false);
   if(data.session)start();else msg("loginMsg","اتبعتلك رسالة تأكيد على الإيميل، افتحها وبعدين ادخل",true);
 };
@@ -1004,16 +985,13 @@ async function start(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$("gate").hidden=false;$("app").hidden=true;return;}
   let {data:ok,error:rpcErr}=await sb.rpc("ezz_claim_first_admin");
-  const wantCo=session.user.user_metadata?.company_name;
-  if(!rpcErr&&!ok&&wantCo){const r=await sb.rpc("ezz_register_company",{p_name:wantCo});
-    if(r.error){$("gate").hidden=false;$("app").hidden=true;return msg("loginMsg",/duplicate|unique/i.test(r.error.message)?"فيه شركة متسجلة بالاسم ده قبل كده. كلم صاحب البرنامج.":"مقدرتش أسجل الشركة: "+r.error.message,false);}
-    ok=true;try{localStorage.setItem("ezz_cid",r.data);}catch(e){}}
+
   if(rpcErr){$("gate").hidden=false;$("app").hidden=true;
     msg("loginMsg",/does not exist|Could not find|schema cache/i.test(rpcErr.message||"")?"قاعدة بيانات البرنامج ده لسه متجهزتش. الصق ملف SQL بتاعه في Supabase مرة واحدة وبعدين ادخل.":"مشكلة في الاتصال بقاعدة البيانات: "+rpcErr.message,false);return;}
   if(!ok){await sb.auth.signOut();$("gate").hidden=false;$("app").hidden=true;msg("loginMsg","الحساب ده لسه مش مسموحله يدخل. اطلب من المدير يضيف إيميلك من صفحة المستخدمين.",false);return;}
   $("gate").hidden=true;$("app").hidden=false;$("who").textContent=session.user.email;myEmail=(session.user.email||"").toLowerCase();
   const {data:me}=await sb.from("ezz_members").select("email").eq("email",myEmail);isOwner=DEMO||!!(me&&me.length);
-  await loadCompanies();applyCo();
+
   $("e_date").value=today();
   await loadAll();go("home");
 }
