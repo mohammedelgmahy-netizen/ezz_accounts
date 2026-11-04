@@ -180,7 +180,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
     <!-- تسجيل -->
     <section id="v-entry" hidden>
       <div class="card">
-        <h3>نقلة / دفعة جديدة</h3>
+        <h3 id="entryTitle">نقلة / دفعة جديدة</h3>
         <div class="grid">
           <label>التاريخ<input id="e_date" type="date"></label>
           <label style="grid-column:span 2">اسم الحساب<select id="e_acc" class="accSel" data-cat=""></select></label>
@@ -197,11 +197,11 @@ tbody tr:nth-child(even) td{background:#faf8f2}
           <label>الدفعات<input id="e_pay" type="number" step="any" inputmode="decimal"></label>
           <label>الصافي<input id="e_net" readonly></label>
           <label>اسم المقاول<input id="e_contractor" list="contractors"></label>
-          <label>الشركة<input id="e_company" list="companies"></label>
+          <label>الشركة<input id="e_company" list="companies" autocomplete="off" placeholder="اختار أو اكتب اسم الشركة"></label>
           <label>ملاحظات<input id="e_notes"></label>
         </div>
         <datalist id="vehList"></datalist><datalist id="contractors"></datalist><datalist id="companies"></datalist>
-        <div class="row"><button class="btn primary" id="saveEntry">حفظ</button></div>
+        <div class="row"><button class="btn primary" id="saveEntry">حفظ</button><button class="btn ghost" id="cancelEdit" hidden>إلغاء التعديل</button></div>
         <div id="entryMsg" class="msg" hidden></div>
       </div>
       <div class="card"><h3>آخر الحركات</h3><div class="tw"><table id="recent"></table></div></div>
@@ -218,7 +218,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
           <label>رصيد افتتاحي<input id="a_open" type="number" step="any" value="0"></label>
           <label>ملاحظات<input id="a_notes"></label>
         </div>
-        <div class="row"><button class="btn primary" id="saveAcc">إضافة</button></div>
+        <div class="row"><button class="btn primary" id="saveAcc">إضافة</button><button class="btn ghost" id="cancelAcc" hidden>إلغاء التعديل</button></div>
         <div id="accMsg" class="msg" hidden></div>
       </div>
       <div class="card"><h3 id="accListTitle"></h3>
@@ -439,9 +439,10 @@ function fillSelects(){
   document.querySelectorAll(".accSel").forEach(s=>{const v=s.value;s.innerHTML=optionsFor(s.dataset.cat||"",s.id==="r_acc");s.value=v;});
 }
 function fillDatalists(){
+  const coSet=new Set(accounts.filter(a=>a.type==="عميل شركة").map(a=>a.name));entries.forEach(r=>{if(r.company)coSet.add(r.company);});
   $("vehList").innerHTML=vehicles.map(v=>`<option value="${esc(v.plate)}">${esc((v.trailer?"مقطورة "+v.trailer+" · ":"")+(v.cube?v.cube+" متر":""))}</option>`).join("");
   const cs=new Set(),co=new Set();entries.forEach(r=>{if(r.contractor)cs.add(r.contractor);if(r.company)co.add(r.company);});
-  $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join("");$("companies").innerHTML=[...co].map(x=>`<option value="${esc(x)}">`).join("");
+  $("contractors").innerHTML=[...cs].map(x=>`<option value="${esc(x)}">`).join("");$("companies").innerHTML=[...coSet].map(x=>`<option value="${esc(x)}">`).join("");
 }
 
 /* ---------- navigation ---------- */
@@ -488,7 +489,7 @@ function recentTable(rows,del){
   return "<tr><th>التاريخ</th><th>الحساب</th><th></th><th>الجرار</th><th>البون</th><th>نقلات</th><th>تكعيب</th><th>خصم</th><th>كمية</th><th>سعر</th><th>قيمة</th><th>دفعات</th><th>صافي</th>"+(del?"<th></th>":"")+"</tr>"+
    (rows.map(r=>{const a=accById(r.account_id),c=TYPES[a.type];return `<tr><td class="num">${r.entry_date}</td><td>${esc(lbl(a))}</td><td><span class="pill ${c==="مورد"?"sup":"cus"}">${c||""}</span></td><td>${esc(r.vehicle)}</td><td>${esc(r.bon_no)}</td><td class="num">${N(r.trips)}</td><td class="num">${N(r.cubic)}</td><td class="num">${r.deduction||""}</td>
     <td class="num">${isTrip(r)?N(r.quantity):""}</td><td class="num">${N(r.price)}</td><td class="num">${isTrip(r)?fmt(r.value):""}</td><td class="num">${r.payments?fmt(r.payments):""}</td><td${cls(r.net)}>${fmt(r.net)}</td>
-    ${del?`<td><button class="btn danger" onclick="delEntry(${r.id})">مسح</button></td>`:""}</tr>`;}).join("")||'<tr><td colspan="14">لسه مفيش حركات</td></tr>');
+    ${del?`<td style="white-space:nowrap"><button class="btn sm ghost" onclick="editEntry(${r.id})">تعديل</button> <button class="btn danger" onclick="delEntry(${r.id})">مسح</button></td>`:""}</tr>`;}).join("")||'<tr><td colspan="14">لسه مفيش حركات</td></tr>');
 }
 
 /* ---------- entry ---------- */
@@ -511,6 +512,7 @@ function vehFill(){
 $("e_vehicle").addEventListener("input",vehFill);$("e_vehicle").addEventListener("change",vehFill);
 $("e_acc").addEventListener("change",()=>{
   const id=+$("e_acc").value;if(!id)return;
+  {const a=accById(id);if(a.type==="عميل شركة"&&!$("e_company").value)$("e_company").value=a.name;}
   if(!$("e_vehicle").value){const dv=vehicles.find(v=>v.driver_id===id);if(dv){$("e_vehicle").value=dv.plate;vehFill();}}
   const r=entries.filter(e=>e.account_id===id&&isTrip(e)).sort((a,b)=>b.id-a.id)[0];
   if(r)[["e_vehicle","vehicle"],["e_trailer","trailer"],["e_cubic","cubic"],["e_price","price"],["e_contractor","contractor"],["e_company","company"]].forEach(([i,k])=>{if(!$(i).value&&r[k]!=null)$(i).value=r[k];});
@@ -523,8 +525,10 @@ $("saveEntry").onclick=async()=>{
     bon_no:$("e_bon").value||null,trips:num("e_trips"),cubic:num("e_cubic"),deduction:num("e_ded")||0,price:num("e_price"),
     payments:num("e_pay")||0,contractor:$("e_contractor").value||null,company:$("e_company").value||null,notes:$("e_notes").value||null};
   const b=$("saveEntry");b.disabled=true;
-  const {error}=await sb.from("ezz_entries").insert(row);b.disabled=false;
+  const editing=editId;
+  const {error}=editing?await sb.from("ezz_entries").update(row).eq("id",editing):await sb.from("ezz_entries").insert(row);b.disabled=false;
   if(error)return msg("entryMsg","متحفظتش: "+error.message,false);
+  if(editing){endEdit(true);msg("entryMsg","تم حفظ التعديل",true);await loadAll();renderRecent();return;}
   let extra="";
   const plate=normPlate(row.vehicle);
   if(plate&&vehReady&&!vehOf(plate)&&row.trips!=null){
@@ -536,6 +540,24 @@ $("saveEntry").onclick=async()=>{
   ["e_bon","e_trips","e_ded","e_pay","e_notes","e_qty","e_value","e_net"].forEach(i=>$(i).value="");
   msg("entryMsg","تم الحفظ"+extra,true);await loadAll();renderRecent();
 };
+let editId=null;
+const ENTRY_FIELDS=[["e_date","entry_date"],["e_vehicle","vehicle"],["e_trailer","trailer"],["e_bon","bon_no"],["e_trips","trips"],["e_cubic","cubic"],["e_ded","deduction"],["e_price","price"],["e_pay","payments"],["e_contractor","contractor"],["e_company","company"],["e_notes","notes"]];
+function editEntry(id){
+  const r=entries.find(e=>e.id===id);if(!r)return;
+  if(tab!=="entry")go("entry");
+  editId=id;$("e_acc").value=String(r.account_id);
+  ENTRY_FIELDS.forEach(([i,k])=>{const v=r[k];$(i).value=v==null||(k==="deduction"||k==="payments")&&!v?"":v;});
+  autoCube=null;$("vehHint").textContent="";calcEntry();
+  $("entryTitle").textContent="تعديل حركة "+r.entry_date+(r.bon_no?" · بون "+r.bon_no:"");
+  $("saveEntry").textContent="حفظ التعديل";$("cancelEdit").hidden=false;$("entryMsg").hidden=true;
+  $("entryTitle").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function endEdit(keepMsg){
+  editId=null;$("entryTitle").textContent="نقلة / دفعة جديدة";$("saveEntry").textContent="حفظ";$("cancelEdit").hidden=true;
+  ENTRY_FIELDS.forEach(([i])=>{if(i!=="e_date")$(i).value="";});["e_qty","e_value","e_net"].forEach(i=>$(i).value="");$("e_acc").value="";
+  if(!keepMsg)$("entryMsg").hidden=true;
+}
+$("cancelEdit").onclick=()=>endEdit(false);
 function renderRecent(){$("recent").innerHTML=recentTable(entries.slice().sort((a,b)=>b.id-a.id).slice(0,30),true);}
 async function delEntry(id){
   if(!confirm("متأكد إنك عايز تمسح الحركة دي؟ ده هيغيّر الأرصدة."))return;
@@ -549,7 +571,7 @@ function setupAcc(cat){
   accCat=cat;
   $("accFormTitle").textContent=cat==="مورد"?"إضافة مورد (سواق أو محجر)":"إضافة عميل (عميل محجر أو عميل شركة)";
   $("accListTitle").textContent=cat==="مورد"?"الموردين":"العملاء";
-  $("a_type").innerHTML=CATTYPES[cat].map(t=>`<option>${t}</option>`).join("");
+  $("a_type").innerHTML=CATTYPES[cat].map(t=>`<option>${t}</option>`).join("");accFormReset();
   $("accMsg").hidden=true;renderAccTable();
 }
 $("accSearch").oninput=()=>renderAccTable();
@@ -559,10 +581,25 @@ function renderAccTable(){
   
   $("accTable").innerHTML="<tr><th>الكود</th><th>اسم الحساب</th><th>النوع</th><th>التليفون</th><th>رصيد افتتاحي</th><th>الرصيد الحالي</th><th>ملاحظات</th><th></th></tr>"+
    (rows.map(a=>{const b=balNow(a.id);return `<tr><td class="num"><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${a.type}</td><td class="num">${esc(a.phone)}</td><td${cls(a.opening_balance)}>${fmt(a.opening_balance)}</td><td${cls(b)}><b>${fmt(b)}</b></td><td>${esc(a.notes)}</td>
-    <td><button class="btn sm primary" onclick="go('st',{cat:'${accCat}',acc:${a.id}})">كشف حساب</button> <button class="btn sm ghost" onclick="editOpening(${a.id})">تعديل الرصيد الافتتاحي</button></td></tr>`;}).join("")||'<tr><td colspan="8">لسه مفيش حسابات</td></tr>');
+    <td><button class="btn sm primary" onclick="go('st',{cat:'${accCat}',acc:${a.id}})">كشف حساب</button> <button class="btn sm ghost" onclick="editAcc(${a.id})">تعديل</button></td></tr>`;}).join("")||'<tr><td colspan="8">لسه مفيش حسابات</td></tr>');
 }
+let accEditId=null;
+function accFormReset(){accEditId=null;["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;$("saveAcc").textContent="إضافة";$("cancelAcc").hidden=true;
+  $("accFormTitle").textContent=accCat==="مورد"?"إضافة مورد (سواق أو محجر)":"إضافة عميل (عميل محجر أو عميل شركة)";}
+function editAcc(id){
+  const a=accById(id);accEditId=id;
+  $("a_name").value=a.name;$("a_type").value=a.type;$("a_phone").value=a.phone||"";$("a_open").value=a.opening_balance||0;$("a_notes").value=a.notes||"";
+  $("accFormTitle").textContent="تعديل "+(a.code?a.code+" - ":"")+a.name;$("saveAcc").textContent="حفظ التعديل";$("cancelAcc").hidden=false;$("accMsg").hidden=true;
+  $("accFormTitle").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("cancelAcc").onclick=()=>{accFormReset();$("accMsg").hidden=true;};
 $("saveAcc").onclick=async()=>{
   const name=$("a_name").value.trim();if(!name)return msg("accMsg","اكتب اسم الحساب",false);
+  if(accEditId){
+    const {error}=await sb.from("ezz_accounts").update({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).eq("id",accEditId);
+    if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل لحساب تاني":error.message,false);
+    accFormReset();msg("accMsg","تم حفظ التعديل",true);await loadAll();renderAccTable();return;
+  }
   const {data,error}=await sb.from("ezz_accounts").insert({name,type:$("a_type").value,phone:$("a_phone").value||null,opening_balance:+$("a_open").value||0,notes:$("a_notes").value||null}).select();
   if(error)return msg("accMsg",error.code==="23505"?"الاسم ده متسجل قبل كده":error.message,false);
   ["a_name","a_phone","a_notes"].forEach(i=>$(i).value="");$("a_open").value=0;
