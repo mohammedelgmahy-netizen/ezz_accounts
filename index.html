@@ -39,7 +39,7 @@ button{cursor:pointer}
 #tabs button{display:flex;align-items:center;gap:12px;border:0;background:transparent;padding:6px 10px;border-radius:10px;text-align:start;position:relative}
 #tabs button svg{width:32px;height:32px;padding:6px;box-sizing:border-box;border-radius:10px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;background:linear-gradient(135deg,var(--i2,#8a94a3),var(--i1,#5b6573));box-shadow:0 2px 6px rgb(0 0 0/.15)}
 #logout svg{--i1:#b42318;--i2:#e04f42}
-#tabs button[data-tab="home"]{--i1:#2f7de1;--i2:#5aa2f5}#tabs button[data-tab="entry"]{--i1:#16a34a;--i2:#3fc46f}#tabs button[data-tab="sup"]{--i1:#ea7a1a;--i2:#f6a24a}#tabs button[data-tab="cus"]{--i1:#0ea5a4;--i2:#33c7c3}#tabs button[data-tab="st"]{--i1:#6d4ad8;--i2:#9274f0}#tabs button[data-tab="ptn"]{--i1:#d63c7a;--i2:#ef6aa0}#tabs button[data-tab="veh"]{--i1:#8a5a2b;--i2:#b07c45}#tabs button[data-tab="purch"]{--i1:#e0533d;--i2:#f27c66}#tabs button[data-tab="sales"]{--i1:#1d9bd1;--i2:#4cbcea}#tabs button[data-tab="profit"]{--i1:#c99a06;--i2:#e6b928}#tabs button[data-tab="inc"]{--i1:#0f8a6a;--i2:#2fb38f}#tabs button[data-tab="bal"]{--i1:#4b5bd6;--i2:#7584ef}#tabs button[data-tab="users"]{--i1:#5b6573;--i2:#828c99}
+#tabs button[data-tab="home"]{--i1:#2f7de1;--i2:#5aa2f5}#tabs button[data-tab="entry"]{--i1:#16a34a;--i2:#3fc46f}#tabs button[data-tab="sup"]{--i1:#ea7a1a;--i2:#f6a24a}#tabs button[data-tab="cus"]{--i1:#0ea5a4;--i2:#33c7c3}#tabs button[data-tab="st"]{--i1:#6d4ad8;--i2:#9274f0}#tabs button[data-tab="ptn"]{--i1:#d63c7a;--i2:#ef6aa0}#tabs button[data-tab="veh"]{--i1:#8a5a2b;--i2:#b07c45}#tabs button[data-tab="purch"]{--i1:#e0533d;--i2:#f27c66}#tabs button[data-tab="sales"]{--i1:#1d9bd1;--i2:#4cbcea}#tabs button[data-tab="profit"]{--i1:#c99a06;--i2:#e6b928}#tabs button[data-tab="inc"]{--i1:#0f8a6a;--i2:#2fb38f}#tabs button[data-tab="rec"]{--i1:#b8336a;--i2:#de5a90}#tabs button[data-tab="bal"]{--i1:#4b5bd6;--i2:#7584ef}#tabs button[data-tab="users"]{--i1:#5b6573;--i2:#828c99}
 #tabs button:hover{background:var(--sunk)}
 #tabs button[aria-current="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
 #tabs button[aria-current="true"]::before{content:"";position:absolute;inset-inline-start:-12px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--accent)}
@@ -169,6 +169,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
       <button data-tab="sales"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>المبيعات</span></button>
       <button data-tab="profit"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg><span>الأرباح</span></button>
       <button data-tab="inc"><svg viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6M9 16h3"/></svg><span>قائمة الدخل</span></button>
+      <button data-tab="rec"><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3"/></svg><span>مطابقة النقلات</span></button>
       <button data-tab="bal"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></svg><span>ملخص الأرصدة</span></button>
       <div class="grp">أدوات</div>
       <button data-tab="users"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>الإعدادات والنسخ</span></button>
@@ -333,6 +334,22 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <p class="hint" style="margin:10px 0 0">حصة الشريك = صافي الربح من «قائمة الدخل» في الفترة دي × نسبته. الرصيد = رأس المال + التمويل + حصته من الربح − المسحوبات.</p>
       </div>
       <div id="ptnOut"></div>
+    </section>
+
+    <section id="v-rec" hidden>
+      <div class="card noprint">
+        <div class="row" style="margin-top:0">
+          <label>من<input id="r2_from" type="date"></label>
+          <label>إلى<input id="r2_to" type="date"></label>
+          <label style="min-width:160px">المقاول<select id="r2_con"></select></label>
+          <label><span>اللي فيها فرق بس</span><select id="r2_only"><option value="0">كل العربيات</option><option value="1">اللي فيها فرق بس</option></select></label>
+          <button class="btn primary" id="recShow">عرض</button>
+          <button class="btn ghost" onclick="window.print()">طباعة</button>
+          <button class="btn wa" onclick="shareSection('recOut','مطابقة النقلات')"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg> واتساب</button>
+        </div>
+        <p class="hint" style="margin:10px 0 0">بيقارن لكل عربية: النقلات اللي اتسجلت على حسابات <b>المحاجر</b> (شالت من المحجر) بالنقلات اللي اتسجلت على حسابات <b>العملاء</b> (وصلت للشركة) في نفس الفترة. الفرق بالموجب يعني شالت من المحجر أكتر من اللي وصل.</p>
+      </div>
+      <div id="recOut"></div>
     </section>
 
     <section id="v-inc" hidden>
@@ -567,8 +584,8 @@ function fillDatalists(){
 }
 
 /* ---------- navigation ---------- */
-const TITLES={veh:"الجرارات والتكعيب",ptn:"الشركاء الممولين",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",inc:"قائمة الدخل",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
-const VIEW={veh:"veh",ptn:"ptn",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",inc:"inc",bal:"bal",users:"users"};
+const TITLES={veh:"الجرارات والتكعيب",ptn:"الشركاء الممولين",home:"الرئيسية",entry:"تسجيل نقلة / دفعة",sup:"الموردين",cus:"العملاء",st:"كشف حساب",purch:"المشتريات",sales:"المبيعات",profit:"الأرباح",inc:"قائمة الدخل",rec:"مطابقة النقلات (المحجر والشركة)",bal:"ملخص الأرصدة",users:"الإعدادات والنسخ الاحتياطي"};
+const VIEW={veh:"veh",ptn:"ptn",home:"home",entry:"entry",sup:"acc",cus:"acc",st:"st",purch:"reg",sales:"reg",profit:"profit",inc:"inc",rec:"rec",bal:"bal",users:"users"};
 let tab="home";
 function side(o){document.body.classList.toggle("side-open",o);$("scrim").hidden=!o;}
 $("menuBtn").onclick=()=>side(true);$("scrim").onclick=()=>side(false);
@@ -585,6 +602,7 @@ function go(t,opts={}){
   if(t==="purch"||t==="sales")setupReg(t==="purch"?"مورد":"عميل");
   if(t==="profit")renderProfit();
   if(t==="inc")renderInc();
+  if(t==="rec")renderRec();
   if(t==="ptn")renderPtn();
   if(t==="bal")renderBal();
   if(t==="users"){loadMembers();renderCompanies();}
@@ -914,6 +932,42 @@ function renderProfit(){
    ${wrows.map(r=>`<tr><td>${r.w} إلى ${r.e}</td><td class="num">${fmt(r.s)}</td><td class="num">${fmt(r.p)}</td><td${cls(r.pr)}><b>${fmt(r.pr)}</b></td></tr>`).join("")}
    </tbody><tfoot><tr><td>الإجمالي</td><td class="num">${fmt(S)}</td><td class="num">${fmt(P)}</td><td${cls(pr)}>${fmt(pr)}</td></tr></tfoot></table></div></div>`;
 }
+
+/* ---------- مطابقة النقلات ---------- */
+function renderRec(){
+  if(!$("r2_from").value)$("r2_from").value=satOf(today());if(!$("r2_to").value)$("r2_to").value=today();
+  const f=$("r2_from").value,t=$("r2_to").value,K=p=>normPlate(p).replace(/\s/g,"");
+  const rows=entries.filter(e=>e.entry_date>=f&&e.entry_date<=t&&isTrip(e)&&e.vehicle);
+  const M={};
+  rows.forEach(e=>{const ty=accById(e.account_id).type;const side=ty==="محجر"?"q":TYPES[ty]==="عميل"?"c":null;if(!side)return;
+    const k=K(e.vehicle),r=M[k]||(M[k]={plate:normPlate(e.vehicle),con:"",cd:"",qt:0,qq:0,ct:0,cq:0});
+    if(e.contractor&&e.entry_date>=r.cd){r.con=e.contractor;r.cd=e.entry_date;}
+    r[side+"t"]+=+e.trips||0;r[side+"q"]+=+e.quantity||0;});
+  let list=Object.values(M);
+  const cons=[...new Set(list.map(r=>r.con||"بدون مقاول"))].sort((a,b)=>a.localeCompare(b,"ar"));
+  const cv=$("r2_con").value;$("r2_con").innerHTML='<option value="">كل المقاولين</option>'+cons.map(c=>`<option${c===cv?" selected":""}>${esc(c)}</option>`).join("");
+  if(cv)list=list.filter(r=>(r.con||"بدون مقاول")===cv);
+  if($("r2_only").value==="1")list=list.filter(r=>Math.abs(r.qt-r.ct)>1e-9||Math.abs(r.qq-r.cq)>1e-9);
+  list.sort((a,b)=>(a.con||"").localeCompare(b.con||"","ar")||a.plate.localeCompare(b.plate,"ar"));
+  const T=k=>list.reduce((s,r)=>s+r[k],0),dt=T("qt")-T("ct"),dq=T("qq")-T("cq"),bad=list.filter(r=>Math.abs(r.qt-r.ct)>1e-9).length;
+  const d=(x,isQ)=>`<td class="num${Math.abs(x)>1e-9?" neg":""}"><b>${Math.abs(x)>1e-9?(x>0?"+":"")+(isQ?fmt(x):N(x)):"✓"}</b></td>`;
+  const byCon={};list.forEach(r=>{const c=r.con||"بدون مقاول",o=byCon[c]||(byCon[c]={qt:0,ct:0,qq:0,cq:0,n:0});o.qt+=r.qt;o.ct+=r.ct;o.qq+=r.qq;o.cq+=r.cq;o.n++;});
+  $("recOut").innerHTML=`<div class="kpis">
+    <div class="kpi hero"><div>فرق النقلات</div><strong class="num">${dt>0?"+":""}${N(dt)}</strong></div>
+    <div class="kpi"><div>نقلات من المحجر</div><strong class="num">${N(T("qt"))}</strong></div>
+    <div class="kpi"><div>نقلات وصلت للشركة</div><strong class="num">${N(T("ct"))}</strong></div>
+    <div class="kpi"><div>فرق الكمية (م³)</div><strong class="num">${fmt(dq)}</strong></div>
+    <div class="kpi"><div>عربيات فيها فرق</div><strong class="num">${bad} من ${list.length}</strong></div></div>
+   <div class="card"><div class="co-head"><div class="co">${esc(CO)}</div><div class="sub">مطابقة النقلات من ${f} إلى ${t}${cv?" · المقاول: "+esc(cv):""}</div></div>
+   <h3>عربية عربية</h3><div class="tw"><table><thead><tr><th>العربية</th><th>المقاول</th><th>نقلات من المحجر</th><th>نقلات للشركة</th><th>فرق النقلات</th><th>كمية من المحجر</th><th>كمية للشركة</th><th>فرق الكمية</th></tr></thead><tbody>
+   ${list.map(r=>`<tr><td><b>${esc(r.plate)}</b></td><td>${esc(r.con||"—")}</td><td class="num">${N(r.qt)}</td><td class="num">${N(r.ct)}</td>${d(r.qt-r.ct)}<td class="num">${fmt(r.qq)}</td><td class="num">${fmt(r.cq)}</td>${d(r.qq-r.cq,1)}</tr>`).join("")||'<tr><td colspan="8">مفيش نقلات بأرقام عربيات في الفترة دي</td></tr>'}
+   </tbody>${list.length?`<tfoot><tr><td colspan="2">الإجمالي</td><td class="num">${N(T("qt"))}</td><td class="num">${N(T("ct"))}</td><td class="num">${N(dt)}</td><td class="num">${fmt(T("qq"))}</td><td class="num">${fmt(T("cq"))}</td><td class="num">${fmt(dq)}</td></tr></tfoot>`:""}</table></div>
+   <h3>ملخص لكل مقاول</h3><div class="tw"><table><thead><tr><th>المقاول</th><th>عدد العربيات</th><th>نقلات من المحجر</th><th>نقلات للشركة</th><th>فرق النقلات</th><th>فرق الكمية</th></tr></thead><tbody>
+   ${Object.entries(byCon).map(([c,o])=>`<tr><td><b>${esc(c)}</b></td><td class="num">${o.n}</td><td class="num">${N(o.qt)}</td><td class="num">${N(o.ct)}</td>${d(o.qt-o.ct)}${d(o.qq-o.cq,1)}</tr>`).join("")}
+   </tbody></table></div></div>`;
+}
+$("recShow").onclick=()=>renderRec();
+["r2_con","r2_only"].forEach(i=>$(i).onchange=()=>renderRec());
 
 /* ---------- قائمة الدخل ---------- */
 const XCATS=["سولار","مرتبات","صيانة وقطع غيار","إيجار","كهربا ومياه","تليفونات","كارتة ورسوم","نثريات"];
