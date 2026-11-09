@@ -395,7 +395,7 @@ tbody tr:nth-child(even) td{background:#faf8f2}
         <h3>مديرين البرنامج</h3>
         <p class="hint">دول بيشوفوا كل الشركات. ضيف هنا ناسك انت بس، وموظفين أي شركة ضيفهم من «موظفين الشركة دي» تحت.</p>
         <div class="tw"><table id="memTable"></table></div>
-        <div class="row"><label style="min-width:240px">إيميل مستخدم جديد<input id="m_email" type="email"></label><button class="btn primary" id="addMem">إضافة مستخدم</button></div>
+        <div class="row"><label style="min-width:240px">إيميل مستخدم جديد<input id="m_email" type="email"></label><label style="min-width:150px">الصلاحية<select id="m_admin"><option value="1">مدير (كل الصلاحيات)</option><option value="0">مستخدم</option></select></label><button class="btn primary" id="addMem">إضافة</button></div>
         <div id="memMsg" class="msg" hidden></div>
       </div>
       <div class="card">
@@ -472,7 +472,7 @@ function demoClient(){
   ent.forEach(({acc:ai,...e})=>DB.ezz_entries.push(der({id:seq++,account_id:ai+1,...e})));let aseq=100;
   class Q{constructor(t){this.t=t;this.f=[];this.op="select";}
     select(){return this} order(){return this} range(a,b){this.r=[a,b];return this} eq(k,v){this.f.push(r=>r[k]==v);return this}
-    insert(row){this.op="insert";this.row=row;return this} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
+    insert(row){this.op="insert";this.row=row;return this} upsert(row){return this.insert(row)} update(p){this.op="update";this.p=p;return this} delete(){this.op="delete";return this}
     run(){const T=DB[this.t];
       if(this.op==="insert"&&Array.isArray(this.row)){const out=[];for(const row of this.row){const q=new Q(this.t);q.op="insert";q.row=row;const r=q.run();if(r.error)return r;out.push(...r.data);}return {data:out,error:null};}
       if(this.op==="insert"){if(this.t==="ezz_accounts"&&T.some(a=>a.name===this.row.name))return {error:{code:"23505",message:"dup"}};
@@ -1032,7 +1032,7 @@ async function loadMembers(){
 }
 $("addMem").onclick=async()=>{
   const email=$("m_email").value.trim().toLowerCase();if(!email)return;
-  const {error}=await sb.from("ezz_members").insert({email});
+  const {error}=await sb.from("ezz_members").upsert({email,is_admin:$("m_admin").value==="1"},{onConflict:"email"});
   if(error)return msg("memMsg","المدير بس اللي يقدر يضيف مستخدمين",false);
   $("m_email").value="";msg("memMsg","تم إضافة المستخدم، يقدر يعمل حساب جديد بالإيميل ده",true);loadMembers();
 };
